@@ -44,6 +44,17 @@ services:
       # The whole site (core + wp-content) — this is what the browser and the
       # wpcli container both operate on, so edits here are live.
       - ./wordpress:/var/www/html
+    # A bind mount arrives owned by the host user, but Apache runs as www-data
+    # (uid 33) — without this, media uploads and plugin updates via wp-admin fail
+    # with "could not create directory". Only uploads/upgrade are handed over, so
+    # your theme/plugin files stay owned by you for editing and git.
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >
+        mkdir -p /var/www/html/wp-content/uploads /var/www/html/wp-content/upgrade &&
+        chown -R www-data:www-data /var/www/html/wp-content/uploads /var/www/html/wp-content/upgrade &&
+        exec docker-entrypoint.sh apache2-foreground
 
   # One-shot installer: `docker compose --profile setup run --rm wpcli`.
   # Idempotent — safe to re-run; it only does what is still missing.

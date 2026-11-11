@@ -36,6 +36,11 @@ Then open <http://localhost:8080/wp-admin> and sign in with the credentials from
 
 Both commands are safe to re-run — the installer only fills in what is missing.
 
+The WordPress container hands `wp-content/uploads` and `wp-content/upgrade` to
+`www-data` on start, so media uploads and in-admin plugin updates work despite
+the bind mount being owned by your user. Your theme/plugin files stay owned by
+you, which is what git and your editor need.
+
 ```bash
 docker compose down          # stop (data stays in the db_data volume)
 docker compose down -v       # stop and wipe the database
