@@ -1,0 +1,14 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/theme.json",
+  "version": 3,
+  "settings": {
+    "color": {
+      "palette": [
+        { "slug": "hemp-green", "name": "Hemp green", "color": "#4a5d23" },
+        { "slug": "hemp-sage", "name": "Hemp sage", "color": "#8a9a5b" },
+        { "slug": "hemp-cream", "name": "Hemp cream", "color": "#f5f1e6" },
+        { "slug": "hemp-charcoal", "name": "Hemp charcoal", "color": "#1f2421" }
+      ]
+    }
+  }
+}

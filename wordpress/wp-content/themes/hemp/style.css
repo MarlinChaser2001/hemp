@@ -1,0 +1,23 @@
+/*
+Theme Name: Hemp
+Theme URI: https://github.com/
+Description: Hemp storefront — child theme of Twenty Twenty-Five for the Hemp WooCommerce shop.
+Author: Hemp
+Template: twentytwentyfive
+Version: 0.1.0
+Requires at least: 6.7
+Requires PHP: 8.1
+License: GNU General Public License v2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: hemp
+Tags: e-commerce, block-theme
+*/
+
+/*
+ * Brand styling lives here and in theme.json. WordPress loads this file for
+ * block themes automatically (parent styles first, then this one), so no
+ * enqueue is needed.
+ *
+ * Keep selectors on brand tokens where possible — e.g.
+ *   .wp-block-button__link { border-radius: 0.25rem; }
+ */

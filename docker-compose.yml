@@ -1,0 +1,73 @@
+# Hemp — local WordPress + WooCommerce stack.
+#
+#   cp .env.example .env          # then edit credentials
+#   docker compose up -d          # start db + wordpress on http://localhost:8080
+#   docker compose --profile setup run --rm wpcli   # install WP + WooCommerce
+#
+# WordPress core lives in ./wordpress (downloaded, gitignored). Only
+# wp-content/themes/hemp and wp-content/plugins/hemp-* are tracked in git.
+
+name: hemp
+
+services:
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-hemp}
+      MARIADB_USER: ${DB_USER:-hemp}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-hemp}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-hemp-root}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  wordpress:
+    image: wordpress:php8.3-apache
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${WP_PORT:-8080}:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: ${DB_NAME:-hemp}
+      WORDPRESS_DB_USER: ${DB_USER:-hemp}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD:-hemp}
+      WORDPRESS_DEBUG: ${WP_DEBUG:-1}
+    volumes:
+      # The whole site (core + wp-content) — this is what the browser and the
+      # wpcli container both operate on, so edits here are live.
+      - ./wordpress:/var/www/html
+
+  # One-shot installer: `docker compose --profile setup run --rm wpcli`.
+  # Idempotent — safe to re-run; it only does what is still missing.
+  wpcli:
+    image: wordpress:cli-php8.3
+    profiles: ["setup"]
+    depends_on:
+      db:
+        condition: service_healthy
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      DB_HOST: db:3306
+      DB_NAME: ${DB_NAME:-hemp}
+      DB_USER: ${DB_USER:-hemp}
+      DB_PASSWORD: ${DB_PASSWORD:-hemp}
+      WP_URL: ${WP_URL:-http://localhost:8080}
+      WP_TITLE: ${WP_TITLE:-Hemp}
+      WP_ADMIN_USER: ${WP_ADMIN_USER:-admin}
+      WP_ADMIN_PASSWORD: ${WP_ADMIN_PASSWORD:-admin}
+      WP_ADMIN_EMAIL: ${WP_ADMIN_EMAIL:-admin@example.com}
+    volumes:
+      - ./wordpress:/var/www/html
+      - ./scripts:/scripts:ro
+    entrypoint: ["sh", "/scripts/setup-wp.sh"]
+
+volumes:
+  db_data:
