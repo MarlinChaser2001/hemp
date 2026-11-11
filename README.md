@@ -14,13 +14,33 @@ WooCommerce out of git diffs while your own code stays reviewable.
 | WooCommerce | installed by `scripts/setup-wp.sh` (not vendored) |
 | Theme | `wp-content/themes/hemp` — child of Twenty Twenty-Five, WooCommerce support + brand palette |
 | Plugin scaffold | `wp-content/plugins/hemp-core` — home for store-specific logic |
-| Local stack | `docker-compose.yml` (MariaDB 11 + WordPress/PHP 8.3 + WP-CLI) |
+| Local stack | `docker-compose.yml` **and** `scripts/podman-up.sh` (MariaDB 11 + WordPress/PHP 8.3 + WP-CLI) |
 | Installer | `scripts/setup-wp.sh` — idempotent, creates DB + admin + WooCommerce |
+| Container guide | `docs/podman.md` — concepts, commands, troubleshooting |
 
 Nothing has been *run* yet: this sandbox has no PHP, MySQL or Docker, so the
 installer has to run on your machine (see below).
 
-## Quickstart — Docker (recommended)
+## Quickstart — Podman (Fedora Silverblue, recommended here)
+
+Silverblue ships Podman and has no Docker daemon; Podman runs rootless, so no
+`sudo` and no service to keep alive.
+
+```bash
+cd ~/Desktop/hemp
+cp .env.example .env      # set DB_PASSWORD, WP_ADMIN_PASSWORD, WP_ADMIN_EMAIL
+./scripts/podman-up.sh    # start MariaDB + WordPress containers
+./scripts/podman-install.sh   # installs WP, WooCommerce, activates the theme
+```
+
+<http://localhost:8080> for the shop, `/wp-admin` for the dashboard.
+
+Start/stop without losing data: `podman-down.sh` (keeps the DB volume),
+`podman-down.sh --wipe` (deletes it). `docs/podman.md` explains images vs
+containers vs volumes, how the two containers talk, where your files live, and
+the SELinux/permission traps.
+
+## Quickstart — Docker (if you have Docker)
 
 ```bash
 cd ~/Desktop/hemp
