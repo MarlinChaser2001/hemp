@@ -44,6 +44,30 @@
                     class: 'hemp-path__img',
                     alt: block.settings.title
                 }}
+              {%- else -%}
+                {%- comment -%}
+                  Defaults cut from the film, so a card is never an empty block of
+                  green while the product photography is being sorted. A block's own
+                  image always wins.
+                {%- endcomment -%}
+                {%- liquid
+                  case forloop.index
+                    when 1
+                      assign still = 'hemp-ingredient-aloe.jpg'
+                    when 2
+                      assign still = 'hemp-ingredient-hemp.jpg'
+                    else
+                      assign still = 'hemp-ingredient-macadamia.jpg'
+                  endcase
+                -%}
+                <img
+                  class="hemp-path__img"
+                  src="{{ still | asset_url }}"
+                  alt=""
+                  width="1200"
+                  height="676"
+                  loading="lazy"
+                >
               {%- endif -%}
             </span>
             <span class="hemp-path__veil" aria-hidden="true"></span>
@@ -108,7 +132,7 @@
   .hemp-path {
     position: relative;
     display: block;
-    aspect-ratio: 3 / 4;
+    aspect-ratio: 4 / 5;
     border-radius: var(--hemp-radius-lg);
     overflow: hidden;
     color: var(--hemp-cream);

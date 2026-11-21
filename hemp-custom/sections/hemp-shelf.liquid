@@ -96,9 +96,14 @@
         {%- endfor -%}
       </ul>
     {%- else -%}
-      <p class="hemp-shelf__empty">
-        {{ section.settings.empty_text | default: 'The shelf is being stocked — products are on their way.' | escape }}
-      </p>
+      <div class="hemp-shelf__empty">
+        <p>
+          {{ section.settings.empty_text | default: 'The shelf is being stocked — products are on their way.' | escape }}
+        </p>
+        <a class="hemp-btn" href="{{ routes.collections_url }}">
+          <span>Browse collections</span>
+        </a>
+      </div>
     {%- endif -%}
   </div>
 </section>
@@ -277,11 +282,15 @@
   }
 
   .hemp-shelf__empty {
-    padding: clamp(1.5rem, 4vw, 2.5rem);
+    display: grid;
+    justify-items: start;
+    gap: 1.1rem;
+    max-width: 34rem;
+    padding: clamp(1.5rem, 4vw, 2.25rem);
     border: 1px dashed rgb(248 244 232 / 0.25);
     border-radius: var(--hemp-radius);
     font-size: 0.95rem;
-    opacity: 0.75;
+    opacity: 0.9;
   }
 
   @media (prefers-reduced-motion: reduce) {
