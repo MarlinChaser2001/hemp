@@ -1,39 +1,295 @@
-<footer>
-  <div class="footer__copyright">
-    &copy;
-    {{ 'now' | date: '%Y' }}
-    {{ shop.name | link_to: routes.root_url }}, {{ powered_by_link }}
+{% comment %}
+  The footer — the last screen of every visit, so it earns a real one.
+
+  Three jobs, in order: the **sign-up** (the only list a shop owns), the **links**
+  (a merchant's menu when they have made one, and the shop's own routes when they
+  have not — never invented content), and the **bar** (year, payment marks, and
+  Shopify's credit).
+
+  `{% form 'customer' %}` is Shopify's native newsletter form: it writes the
+  customer with a `newsletter` tag, double-opt-in if the store has it on, and
+  renders `posted_successfully?` without a line of JavaScript. The submit button
+  reuses `.hemp-btn`, so it is the same lime pill as the hero.
+{% endcomment %}
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__brand">
+      <a class="site-footer__wordmark" href="{{ routes.root_url }}">{{ shop.name }}</a>
+
+      {%- if section.settings.tagline != blank -%}
+        <p class="site-footer__tagline">{{ section.settings.tagline | escape }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.show_newsletter -%}
+        <div class="site-footer__signup">
+          {%- if section.settings.signup_heading != blank -%}
+            <h2 class="site-footer__signup-title">{{ section.settings.signup_heading | escape }}</h2>
+          {%- endif -%}
+          {%- if section.settings.signup_text != blank -%}
+            <p class="site-footer__signup-text">{{ section.settings.signup_text | escape }}</p>
+          {%- endif -%}
+
+          {%- form 'customer', class: 'site-footer__form' -%}
+            <input type="hidden" name="contact[tags]" value="newsletter">
+
+            <label class="visually-hidden" for="footer-email">Email address</label>
+            <div class="site-footer__field">
+              <input
+                id="footer-email"
+                type="email"
+                name="contact[email]"
+                autocomplete="email"
+                placeholder="you@example.com"
+                required
+              >
+              <button type="submit" class="hemp-btn">
+                <span>{{ section.settings.signup_label | default: 'Join' | escape }}</span>
+              </button>
+            </div>
+
+            {%- if form.posted_successfully? -%}
+              <p class="site-footer__note site-footer__note--ok">You are on the list — check your inbox.</p>
+            {%- endif -%}
+            {%- if form.errors -%}
+              <p class="site-footer__note site-footer__note--error">{{ form.errors | default_errors }}</p>
+            {%- endif -%}
+          {%- endform -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    <nav class="site-footer__links" aria-label="Footer">
+      <div class="site-footer__col">
+        <h2 class="site-footer__col-title">Shop</h2>
+        <ul>
+          {%- if section.settings.menu != blank -%}
+            {%- for link in section.settings.menu.links -%}
+              <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+            {%- endfor -%}
+          {%- else -%}
+            <li><a href="{{ routes.all_products_collection_url }}">All products</a></li>
+            <li><a href="{{ routes.collections_url }}">Collections</a></li>
+            <li><a href="{{ routes.search_url }}">Search</a></li>
+          {%- endif -%}
+        </ul>
+      </div>
+
+      <div class="site-footer__col">
+        <h2 class="site-footer__col-title">Your account</h2>
+        <ul>
+          {%- if shop.customer_accounts_enabled -%}
+            <li><a href="{{ routes.account_url }}">Account</a></li>
+          {%- endif -%}
+          <li><a href="{{ routes.cart_url }}">Cart</a></li>
+          {%- if shop.privacy_policy != blank -%}
+            <li><a href="{{ shop.privacy_policy.url }}">Privacy</a></li>
+          {%- endif -%}
+        </ul>
+      </div>
+    </nav>
   </div>
 
-  <div class="footer__links">
-    {% for link in section.settings.menu.links %}
-      {{ link.title | link_to: link.url }}
-    {% endfor %}
-  </div>
+  <div class="site-footer__bar">
+    <p class="site-footer__legal">
+      &copy; {{ 'now' | date: '%Y' }} {{ shop.name }}
+    </p>
 
-  <div class="footer__payment">
-    {% if section.settings.show_payment_icons %}
-      {% for type in shop.enabled_payment_types %}
-        {{ type | payment_type_svg_tag }}
-      {% endfor %}
-    {% endif %}
+    <div class="site-footer__payments">
+      {%- if section.settings.show_payment_icons -%}
+        {%- for type in shop.enabled_payment_types -%}
+          {{ type | payment_type_svg_tag }}
+        {%- endfor -%}
+      {%- endif -%}
+    </div>
+
+    <p class="site-footer__credit">{{ powered_by_link }}</p>
   </div>
 </footer>
 
+
 {% stylesheet %}
-  footer {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 2rem;
+  .site-footer {
+    grid-column: 1 / -1;
+    background: var(--hemp-deep);
+    color: var(--hemp-cream);
+    padding-block: clamp(2.5rem, 5vw, 4rem) 1.25rem;
   }
-  footer a {
+
+  .site-footer__inner {
+    width: min(100% - 2 * var(--page-margin), var(--page-width));
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: start;
+  }
+
+  .site-footer__wordmark {
+    display: inline-block;
+    color: inherit;
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
     text-decoration: none;
-    color: var(--color-foreground);
   }
-  footer .footer__links,
-  footer .footer__payment {
+
+  .site-footer__tagline {
+    margin-block-start: 0.6rem;
+    max-width: 34ch;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: rgb(248 244 232 / 0.7);
+  }
+
+  /* ── Sign-up ──────────────────────────────────────────────────────────── */
+  .site-footer__signup {
+    margin-block-start: clamp(1.5rem, 3vw, 2.25rem);
+    max-width: 30rem;
+  }
+
+  .site-footer__signup-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .site-footer__signup-text {
+    margin-block-start: 0.3rem;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: rgb(248 244 232 / 0.68);
+  }
+
+  .site-footer__field {
     display: flex;
-    gap: 1rem;
+    gap: 0.5rem;
+    margin-block-start: 0.9rem;
+  }
+
+  .site-footer__field input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0.95em 1.1em;
+    border: 1px solid rgb(248 244 232 / 0.22);
+    border-radius: 999px;
+    background: rgb(248 244 232 / 0.06);
+    color: var(--hemp-cream);
+    font-size: 0.9rem;
+  }
+
+  .site-footer__field input::placeholder {
+    color: rgb(248 244 232 / 0.42);
+  }
+
+  .site-footer__field input:focus-visible {
+    outline: 2px solid var(--hemp-lime);
+    outline-offset: 2px;
+  }
+
+  .site-footer__field .hemp-btn {
+    flex: 0 0 auto;
+  }
+
+  .site-footer__note {
+    margin-block-start: 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .site-footer__note--ok {
+    color: var(--hemp-lime);
+  }
+
+  .site-footer__note--error {
+    color: #ffb4a8;
+  }
+
+  /* ── Links ────────────────────────────────────────────────────────────── */
+  .site-footer__links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 1.5rem;
+  }
+
+  .site-footer__col-title {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(248 244 232 / 0.5);
+  }
+
+  .site-footer__col ul {
+    margin: 0.85rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .site-footer__col a {
+    color: inherit;
+    font-size: 0.92rem;
+    text-decoration: none;
+    opacity: 0.85;
+    transition: opacity 0.3s var(--hemp-ease), color 0.3s var(--hemp-ease);
+  }
+
+  .site-footer__col a:hover {
+    opacity: 1;
+    color: var(--hemp-lime);
+  }
+
+  /* ── Bar ──────────────────────────────────────────────────────────────── */
+  .site-footer__bar {
+    width: min(100% - 2 * var(--page-margin), var(--page-width));
+    margin: clamp(2rem, 4vw, 3rem) auto 0;
+    padding-block-start: 1.1rem;
+    border-block-start: 1px solid rgb(248 244 232 / 0.12);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+    font-size: 0.75rem;
+    color: rgb(248 244 232 / 0.55);
+  }
+
+  .site-footer__credit a,
+  .site-footer__legal {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .site-footer__payments {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .site-footer__payments svg {
+    height: 1.4rem;
+    width: auto;
+    opacity: 0.8;
+  }
+
+  @media (max-width: 749px) {
+    .site-footer__inner {
+      grid-template-columns: 1fr;
+    }
+    .site-footer__field {
+      flex-wrap: wrap;
+    }
+    .site-footer__field .hemp-btn {
+      width: 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-footer__col a {
+      transition: none;
+    }
   }
 {% endstylesheet %}
 
@@ -42,16 +298,34 @@
   "name": "t:general.footer",
   "settings": [
     {
-      "type": "link_list",
-      "id": "menu",
-      "label": "t:labels.menu"
+      "type": "text",
+      "id": "tagline",
+      "label": "Line under the shop name",
+      "default": "Hemp, grown and pressed in Australia — for skin, and for the ones who follow you everywhere."
+    },
+    { "type": "header", "content": "Sign-up" },
+    { "type": "checkbox", "id": "show_newsletter", "label": "Show the email sign-up", "default": true },
+    {
+      "type": "text",
+      "id": "signup_heading",
+      "label": "Sign-up heading",
+      "default": "Ten percent off the first order"
     },
     {
-      "type": "checkbox",
-      "id": "show_payment_icons",
-      "label": "t:labels.show_payment_icons",
-      "default": true
-    }
+      "type": "text",
+      "id": "signup_text",
+      "label": "Sign-up text",
+      "default": "One email a month, new drops first, and no noise."
+    },
+    { "type": "text", "id": "signup_label", "label": "Sign-up button", "default": "Join" },
+    { "type": "header", "content": "Links" },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Shop column",
+      "info": "Empty shows all products, collections and search."
+    },
+    { "type": "checkbox", "id": "show_payment_icons", "label": "t:labels.show_payment_icons", "default": true }
   ]
 }
 {% endschema %}
