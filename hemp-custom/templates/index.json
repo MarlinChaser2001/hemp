@@ -87,7 +87,9 @@
         "heading_em": "Picked the same week.",
         "lede": "Australian-grown hemp, cut and cold-pressed in small batches — the reason one drop does what it does.",
         "cta_label": "Shop the range",
-        "cta_link": "/collections/all"
+        "cta_link": "/collections/all",
+        "collection": "all-pets",
+        "limit": 4
       }
     },
     "ingredients": {

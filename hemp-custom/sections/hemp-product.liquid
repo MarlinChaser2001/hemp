@@ -1,0 +1,451 @@
+{% comment %}
+  **The product page** — the place the film was made for.
+
+  Two columns: the media on the left (the film first when this product is the one it was shot for,
+  then the photographs), and a buy box on the right that sticks while you scroll the media.
+
+  **The film is per product, and decided by a tag.** A 19-second commercial belongs on one page, not
+  every page, and a section setting applies to all of them — so the section carries a `film_tag`
+  (default `hemp-calm`) and the film renders only on products carrying it. A video picked in
+  Content → Files wins; empty falls back to the one built into the theme, which is this film. Tag
+  the product `hemp-calm` and the film appears on it and nowhere else.
+
+  **The add-to-cart works with no JavaScript.** Variants are a `<select name="id">` rather than radio
+  pills, because pills need a script to translate a choice into a variant id and this theme has no
+  script on this page. A select is one less thing to break on a slow phone in a boat.
+{% endcomment %}
+
+{%- liquid
+  assign current = product.selected_or_first_available_variant
+  assign saving = 0
+  if product.compare_at_price > product.price
+    assign saving = product.compare_at_price | minus: product.price | times: 100.0 | divided_by: product.compare_at_price | round
+  endif
+
+  assign show_film = true
+  assign film_tag = section.settings.film_tag
+  if film_tag != blank
+    unless product.tags contains film_tag
+      assign show_film = false
+    endunless
+  endif
+
+  assign poster = 'hemp-film-poster.jpg' | asset_url
+-%}
+
+<section class="hemp-product full-width">
+  <div class="hemp-product__inner">
+    <div class="hemp-product__media">
+      {%- if show_film -%}
+        <figure class="hemp-product__film">
+          <video
+            class="hemp-film__video"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="metadata"
+            poster="{{ poster }}"
+            aria-hidden="true"
+            tabindex="-1"
+          >
+            {%- if section.settings.film != blank -%}
+              {%- for source in section.settings.film.sources -%}
+                <source src="{{ source.url }}" type="{{ source.mime_type }}">
+              {%- endfor -%}
+            {%- else -%}
+              <source src="{{ 'hemp-film.mp4' | asset_url }}" type="video/mp4">
+            {%- endif -%}
+          </video>
+          <figcaption class="hemp-product__film-note">The film — 19 seconds, no words.</figcaption>
+        </figure>
+      {%- endif -%}
+
+      {%- for image in product.images limit: 6 -%}
+        <figure class="hemp-product__figure">
+          {{
+            image
+            | image_url: width: 1400
+            | image_tag:
+              loading: 'lazy',
+              sizes: '(min-width: 990px) 55vw, 92vw',
+              widths: '500,800,1100,1400',
+              class: 'hemp-product__image',
+              alt: image.alt | default: product.title
+          }}
+        </figure>
+      {%- endfor -%}
+    </div>
+
+
+    <div class="hemp-product__buy">
+      {%- if product.vendor != blank -%}
+        <p class="hemp-product__vendor">{{ product.vendor }}</p>
+      {%- endif -%}
+
+      <h1 class="hemp-product__title">{{ product.title }}</h1>
+
+      <div class="hemp-product__price">
+        <span class="hemp-product__now">{{ product.price | money }}</span>
+        {%- if saving > 0 -%}
+          <s class="hemp-product__was">{{ product.compare_at_price | money }}</s>
+          <span class="hemp-product__save">{{ saving }}% off</span>
+        {%- endif -%}
+      </div>
+
+      {%- form 'product', product, class: 'hemp-product__form' -%}
+        {%- unless product.has_only_default_variant -%}
+          <label class="hemp-product__label" for="hemp-variant-{{ section.id }}">Choose</label>
+          <select id="hemp-variant-{{ section.id }}" name="id" class="hemp-product__select">
+            {%- for variant in product.variants -%}
+              <option
+                value="{{ variant.id }}"
+                {% if variant == current %}selected{% endif %}
+                {% unless variant.available %}disabled{% endunless %}
+              >
+                {{ variant.title }} — {{ variant.price | money }}
+              </option>
+            {%- endfor -%}
+          </select>
+        {%- else -%}
+          <input type="hidden" name="id" value="{{ current.id }}">
+        {%- endunless -%}
+
+        <div class="hemp-product__actions">
+          <label class="visually-hidden" for="hemp-qty-{{ section.id }}">Quantity</label>
+          <input
+            id="hemp-qty-{{ section.id }}"
+            class="hemp-product__qty"
+            type="number"
+            name="quantity"
+            value="1"
+            min="1"
+          >
+          <button type="submit" class="hemp-btn" {% unless product.available %}disabled{% endunless %}>
+            <span>{% if product.available %}Add to cart{% else %}Sold out{% endif %}</span>
+          </button>
+        </div>
+
+        {%- if section.settings.show_payment_button and product.available -%}
+          {{ form | payment_button }}
+        {%- endif -%}
+      {%- endform -%}
+
+      <ul class="hemp-product__trust">
+        {%- for i in (1..3) -%}
+          {%- assign key = 'trust_' | append: i -%}
+          {%- assign line = section.settings[key] -%}
+          {%- if line != blank -%}
+            <li>{{ line | escape }}</li>
+          {%- endif -%}
+        {%- endfor -%}
+      </ul>
+
+      {%- if product.description != blank -%}
+        <details class="hemp-product__panel" open>
+          <summary>What it is</summary>
+          <div class="hemp-product__prose">{{ product.description }}</div>
+        </details>
+      {%- endif -%}
+
+      {%- if section.settings.ingredients != blank -%}
+        <details class="hemp-product__panel">
+          <summary>Ingredients</summary>
+          <div class="hemp-product__prose"><p>{{ section.settings.ingredients | escape }}</p></div>
+        </details>
+      {%- endif -%}
+
+      {%- if section.settings.shipping != blank -%}
+        <details class="hemp-product__panel">
+          <summary>Shipping and returns</summary>
+          <div class="hemp-product__prose"><p>{{ section.settings.shipping | escape }}</p></div>
+        </details>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+
+{% stylesheet %}
+  .hemp-product {
+    background: var(--hemp-cream);
+    color: var(--hemp-ink);
+    padding-block: clamp(1.25rem, 2.5vw, 2rem) clamp(3rem, 6vw, 5rem);
+  }
+
+  .hemp-product__inner {
+    width: min(100% - 2 * var(--page-margin), var(--page-width));
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: clamp(1.5rem, 4vw, 4rem);
+    align-items: start;
+  }
+
+  .hemp-product__media {
+    display: grid;
+    gap: clamp(0.6rem, 1.2vw, 1rem);
+  }
+
+  .hemp-product__film,
+  .hemp-product__figure {
+    margin: 0;
+    border-radius: var(--hemp-radius);
+    overflow: hidden;
+    background: var(--hemp-deep);
+  }
+
+  .hemp-film__video {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  .hemp-product__film-note {
+    padding: 0.6rem 0.9rem;
+    background: var(--hemp-deep);
+    color: rgb(248 244 232 / 0.6);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .hemp-product__image {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* The buy box follows you down the media — a page of six photographs is a long scroll. */
+  .hemp-product__buy {
+    position: sticky;
+    top: 6rem;
+    display: grid;
+    align-content: start;
+    gap: 0.85rem;
+  }
+
+  .hemp-product__vendor {
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--hemp-ink-soft);
+  }
+
+  .hemp-product__title {
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-weight: 800;
+    text-wrap: balance;
+  }
+
+  .hemp-product__price {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .hemp-product__now {
+    font-size: 1.35rem;
+    font-weight: 800;
+  }
+
+  .hemp-product__was {
+    font-size: 1rem;
+    opacity: 0.5;
+  }
+
+  .hemp-product__save {
+    padding: 0.3em 0.6em;
+    border-radius: 999px;
+    background: var(--hemp-lime);
+    color: var(--hemp-deep);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .hemp-product__label {
+    display: block;
+    margin-block-end: 0.4rem;
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--hemp-ink-soft);
+  }
+
+  .hemp-product__select,
+  .hemp-product__qty {
+    width: 100%;
+    padding: 0.95em 1.1em;
+    border: 1px solid rgb(20 32 26 / 0.18);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--hemp-ink);
+    font: inherit;
+    font-size: 0.95rem;
+  }
+
+  .hemp-product__select:focus-visible,
+  .hemp-product__qty:focus-visible {
+    outline: 2px solid var(--hemp-leaf);
+    outline-offset: 2px;
+  }
+
+  .hemp-product__actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-block-start: 0.75rem;
+  }
+
+  .hemp-product__qty {
+    width: 5.5rem;
+    flex: 0 0 auto;
+    text-align: center;
+  }
+
+  .hemp-product__actions .hemp-btn {
+    flex: 1 1 auto;
+  }
+
+  .hemp-product__actions .hemp-btn[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .hemp-product__trust {
+    margin: 0.5rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.45rem;
+    font-size: 0.86rem;
+    color: var(--hemp-ink-soft);
+  }
+
+  .hemp-product__trust li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+  }
+
+  .hemp-product__trust li::before {
+    content: "";
+    flex: 0 0 auto;
+    width: 0.45em;
+    height: 0.45em;
+    border-radius: 50%;
+    background: var(--hemp-leaf);
+    translate: 0 -0.15em;
+  }
+
+  .hemp-product__panel {
+    border-block-start: 1px solid rgb(20 32 26 / 0.14);
+    padding-block-start: 0.9rem;
+  }
+
+  .hemp-product__panel summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    cursor: pointer;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    list-style: none;
+  }
+
+  .hemp-product__panel summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .hemp-product__panel summary::after {
+    content: "+";
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .hemp-product__panel[open] summary::after {
+    content: "–";
+  }
+
+  .hemp-product__prose {
+    padding-block-start: 0.7rem;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: var(--hemp-ink-soft);
+  }
+
+  .hemp-product__prose :is(img, iframe, video) {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--hemp-radius);
+  }
+
+  @media (max-width: 899px) {
+    .hemp-product__inner {
+      grid-template-columns: 1fr;
+    }
+    .hemp-product__buy {
+      position: static;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Product page",
+  "settings": [
+    { "type": "header", "content": "Film" },
+    {
+      "type": "video",
+      "id": "film",
+      "label": "Film",
+      "info": "Pick a file from Content → Files. Empty uses the 19-second film built into the theme."
+    },
+    {
+      "type": "text",
+      "id": "film_tag",
+      "label": "Film only on products tagged",
+      "default": "hemp-calm",
+      "info": "Empty shows the film on every product. A commercial is for one product, not decoration for all of them."
+    },
+    { "type": "header", "content": "Buy box" },
+    { "type": "text", "id": "trust_1", "label": "Trust line 1", "default": "Free AU shipping over $80" },
+    { "type": "text", "id": "trust_2", "label": "Trust line 2", "default": "30-day returns, opened or not" },
+    { "type": "text", "id": "trust_3", "label": "Trust line 3", "default": "Third-party tested, batch by batch" },
+    {
+      "type": "checkbox",
+      "id": "show_payment_button",
+      "label": "Show the accelerated checkout button",
+      "default": true
+    },
+    { "type": "header", "content": "Panels" },
+    {
+      "type": "textarea",
+      "id": "ingredients",
+      "label": "Ingredients",
+      "default": "Cold-pressed hemp seed oil, aloe vera, macadamia oil, lavender essential oil. No fillers, no mineral oil, nothing synthetic."
+    },
+    {
+      "type": "textarea",
+      "id": "shipping",
+      "label": "Shipping and returns",
+      "default": "Posted from Australia within two business days. Free over $80, flat $9.95 under it. Unopened, back within 30 days for a full refund — opened jars are fine too, we would rather you tried it."
+    }
+  ],
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  }
+}
+{% endschema %}

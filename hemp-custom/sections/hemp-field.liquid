@@ -33,7 +33,31 @@
     loading="lazy"
   >
 
-  {%- if section.settings.product_image != blank -%}
+  {%- assign field_shelf = section.settings.collection -%}
+  {%- if field_shelf != blank and field_shelf.products.size > 0 -%}
+    <ul class="hemp-field__shelf">
+      {%- for item in field_shelf.products limit: section.settings.limit -%}
+        <li class="hemp-field__tile">
+          <a class="hemp-field__tile-link" href="{{ item.url }}">
+            {%- if item.featured_image != blank -%}
+              {{
+                item.featured_image
+                | image_url: width: 400
+                | image_tag:
+                  loading: 'lazy',
+                  sizes: '(min-width: 749px) 12vw, 24vw',
+                  widths: '200,300,400',
+                  class: 'hemp-field__tile-img',
+                  alt: item.title
+              }}
+            {%- endif -%}
+            <span class="hemp-field__tile-name">{{ item.title }}</span>
+            <span class="hemp-field__tile-price">{{ item.price | money }}</span>
+          </a>
+        </li>
+      {%- endfor -%}
+    </ul>
+  {%- elsif section.settings.product_image != blank -%}
     <img
       class="hemp-field__product"
       src="{{ section.settings.product_image | image_url: width: 900 }}"
@@ -143,6 +167,93 @@
     margin-block-start: 0.5rem;
   }
 
+  /* ── Products standing on the log ─────────────────────────────────────────
+   * Objects placed on a shelf, not cards in a row: a slight angle each way and a
+   * shadow underneath is what makes them sit on the wood rather than float.
+   */
+  .hemp-field__shelf {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 2%;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: clamp(0.5rem, 1.6vw, 1.4rem);
+    margin: 0;
+    padding-inline: var(--page-margin);
+    list-style: none;
+  }
+
+  .hemp-field__tile {
+    width: clamp(5rem, 11vw, 8.5rem);
+  }
+
+  .hemp-field__tile:nth-child(odd) {
+    rotate: -1.2deg;
+  }
+
+  .hemp-field__tile:nth-child(even) {
+    rotate: 1.1deg;
+  }
+
+  .hemp-field__tile-link {
+    display: grid;
+    justify-items: center;
+    gap: 0.3rem;
+    padding: 0.5rem 0.5rem 0.65rem;
+    border-radius: 1rem;
+    background: rgb(255 255 255 / 0.94);
+    box-shadow: 0 14px 22px -12px rgb(31 22 12 / 0.45);
+    color: var(--hemp-ink);
+    text-decoration: none;
+    transition: translate 0.35s var(--hemp-ease), box-shadow 0.35s var(--hemp-ease);
+  }
+
+  .hemp-field__tile-link:hover {
+    translate: 0 -6px;
+    box-shadow: 0 20px 30px -14px rgb(31 22 12 / 0.5);
+  }
+
+  .hemp-field__tile-img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .hemp-field__tile-name {
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .hemp-field__tile-price {
+    font-size: 0.6rem;
+    color: var(--hemp-ink-soft);
+  }
+
+  @media (max-width: 749px) {
+    .hemp-field__shelf {
+      inset-block-end: 1.5%;
+      gap: 0.4rem;
+    }
+    .hemp-field__tile {
+      width: clamp(4rem, 22vw, 6rem);
+    }
+    /* On a phone the objects are the point; the labels are noise. */
+    .hemp-field__tile-name,
+    .hemp-field__tile-price {
+      display: none;
+    }
+  }
+
   @media (max-width: 749px) {
     .hemp-field {
       min-height: 27rem;
@@ -177,10 +288,17 @@
     { "type": "text", "id": "cta_label", "label": "Button", "default": "Shop the range" },
     { "type": "url", "id": "cta_link", "label": "Button link", "info": "Empty links to all products." },
     {
+      "type": "collection",
+      "id": "collection",
+      "label": "Products to stand on the log",
+      "info": "Four works best. Empty uses the single cut-out below instead."
+    },
+    { "type": "range", "id": "limit", "label": "How many", "min": 2, "max": 6, "step": 1, "default": 4 },
+    {
       "type": "image_picker",
       "id": "product_image",
       "label": "Product to stand on the log",
-      "info": "A cut-out with transparency. Leave empty for the field on its own."
+      "info": "One cut-out with transparency. Used when no collection is chosen."
     },
     {
       "type": "image_picker",
