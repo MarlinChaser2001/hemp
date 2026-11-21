@@ -1,0 +1,185 @@
+{% comment %}
+  A ticker — the snappy band between the film and the shop.
+
+  One item per line in the setting; the track is rendered twice and translated
+  by half its width, which is the only reliable way to loop a marquee without
+  JavaScript. The second copy is `aria-hidden`, so a screen reader hears the
+  claims once rather than twice, and the animation stops on hover so a person
+  can actually read it.
+{% endcomment %}
+
+{%- liquid
+  assign lines = section.settings.items | newline_to_br | split: '<br />'
+-%}
+
+<section
+  class="hemp-ticker hemp-ticker--{{ section.settings.tone }} hemp-ticker--{{ section.settings.size }} full-width"
+  style="--hemp-ticker-speed: {{ section.settings.speed }}s;"
+>
+  <div class="hemp-ticker__track">
+    {%- for copy in (1..2) -%}
+      <ul class="hemp-ticker__list" {% if copy == 2 %}aria-hidden="true"{% endif %}>
+        {%- for line in lines -%}
+          {%- assign text = line | strip -%}
+          {%- if text != blank -%}
+            <li>{{ text }}</li>
+          {%- endif -%}
+        {%- endfor -%}
+      </ul>
+    {%- endfor -%}
+  </div>
+</section>
+
+{% stylesheet %}
+  .hemp-ticker {
+    overflow: hidden;
+    border-block: 1px solid rgb(11 36 25 / 0.08);
+  }
+
+  .hemp-ticker--lime {
+    background: var(--hemp-lime);
+    color: var(--hemp-deep);
+  }
+
+  .hemp-ticker--deep {
+    background: var(--hemp-deep);
+    color: var(--hemp-lime);
+  }
+
+  .hemp-ticker--cream {
+    background: var(--hemp-sand);
+    color: var(--hemp-ink);
+  }
+
+  .hemp-ticker--regular {
+    padding-block: 0.9rem;
+  }
+
+  .hemp-ticker--big {
+    padding-block: 1.5rem;
+  }
+
+  .hemp-ticker__track {
+    display: flex;
+    width: max-content;
+    animation: hemp-marquee var(--hemp-ticker-speed, 28s) linear infinite;
+  }
+
+  .hemp-ticker:hover .hemp-ticker__track {
+    animation-play-state: paused;
+  }
+
+  .hemp-ticker__list {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    white-space: nowrap;
+  }
+
+  .hemp-ticker__list li {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.4rem;
+    padding-inline: 1.4rem;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .hemp-ticker--big .hemp-ticker__list li {
+    font-size: clamp(1.1rem, 2vw, 1.7rem);
+    letter-spacing: 0.02em;
+    text-transform: none;
+    font-weight: 700;
+  }
+
+  /* The separator lives on the item so the loop has no gaps at the seam. */
+  .hemp-ticker__list li::after {
+    content: "";
+    width: 0.4em;
+    height: 0.4em;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.45;
+    flex: 0 0 auto;
+  }
+
+  @keyframes hemp-marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hemp-ticker__track {
+      animation: none;
+      width: auto;
+      justify-content: center;
+    }
+    /* One copy is enough when nothing moves — the duplicate would just sit there. */
+    .hemp-ticker__list[aria-hidden='true'] {
+      display: none;
+    }
+    .hemp-ticker {
+      overflow-x: auto;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Ticker",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "items",
+      "label": "Items",
+      "info": "One per line.",
+      "default": "Australian grown\nCold pressed\nThird-party tested\nVegan\nPet safe\nSmall batch"
+    },
+    {
+      "type": "select",
+      "id": "tone",
+      "label": "Colour",
+      "options": [
+        { "value": "lime", "label": "Lime" },
+        { "value": "deep", "label": "Deep green" },
+        { "value": "cream", "label": "Sand" }
+      ],
+      "default": "lime"
+    },
+    {
+      "type": "select",
+      "id": "size",
+      "label": "Size",
+      "options": [
+        { "value": "regular", "label": "Regular" },
+        { "value": "big", "label": "Big" }
+      ],
+      "default": "regular"
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "label": "Seconds per loop",
+      "min": 10,
+      "max": 60,
+      "step": 2,
+      "unit": "s",
+      "default": 28
+    }
+  ],
+  "presets": [
+    {
+      "name": "Ticker"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,334 @@
+{% comment %}
+  A shelf of products from one collection — the shop window.
+
+  The card is deliberately quiet next to the hero: dark surface, the photograph
+  doing the work, price and one button. Quick-add is a **plain product form**,
+  not a scripted AJAX call, so it works with JavaScript off, on a slow phone, and
+  inside the theme editor — and the cart page is a perfectly good confirmation.
+  When a store has no products yet the section says so instead of rendering an
+  empty grid, because an empty grid looks like a broken page.
+{% endcomment %}
+
+{%- liquid
+  assign shelf = section.settings.collection
+  assign limit = section.settings.limit
+-%}
+
+<section class="hemp-shelf hemp-section hemp-section--{{ section.settings.tone }} full-width">
+  <div class="hemp-shelf__inner">
+    <header class="hemp-shelf__head">
+      <div>
+        {%- if section.settings.kicker != blank -%}
+          <p class="hemp-kicker">{{ section.settings.kicker | escape }}</p>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="hemp-heading">{{ section.settings.heading | escape }}</h2>
+        {%- endif -%}
+      </div>
+      {%- if shelf != blank and section.settings.show_view_all -%}
+        <a class="hemp-shelf__all" href="{{ shelf.url }}">
+          {{ section.settings.view_all_label | default: 'View all' | escape }}
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false">
+            <path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      {%- endif -%}
+    </header>
+
+    {%- if shelf != blank and shelf.products.size > 0 -%}
+      <ul class="hemp-shelf__grid">
+        {%- for product in shelf.products limit: limit -%}
+          {%- liquid
+            assign form_id = 'hemp-add-' | append: section.id | append: '-' | append: product.id
+            assign saving = 0
+            if product.compare_at_price > product.price
+              assign saving = product.compare_at_price | minus: product.price | times: 100.0 | divided_by: product.compare_at_price | round
+            endif
+          -%}
+          <li class="hemp-card">
+            <a class="hemp-card__media" href="{{ product.url }}" tabindex="-1" aria-hidden="true">
+              {%- if product.featured_image != blank -%}
+                {{
+                  product.featured_image
+                  | image_url: width: 800
+                  | image_tag:
+                    loading: 'lazy',
+                    sizes: '(min-width: 990px) 22vw, 45vw',
+                    widths: '300,450,600,800',
+                    class: 'hemp-card__img',
+                    alt: product.title
+                }}
+              {%- endif -%}
+              {%- if saving > 0 -%}
+                <span class="hemp-badge">−{{ saving }}%</span>
+              {%- endif -%}
+            </a>
+
+            <div class="hemp-card__body">
+              {%- if product.vendor != blank and section.settings.show_vendor -%}
+                <p class="hemp-card__vendor">{{ product.vendor }}</p>
+              {%- endif -%}
+
+              <h3 class="hemp-card__title">
+                <a href="{{ product.url }}">{{ product.title }}</a>
+              </h3>
+
+              <div class="hemp-card__price">
+                <span class="hemp-card__now">{{ product.price | money }}</span>
+                {%- if saving > 0 -%}
+                  <s class="hemp-card__was">{{ product.compare_at_price | money }}</s>
+                {%- endif -%}
+              </div>
+
+              {%- if product.available -%}
+                {%- form 'product', product, id: form_id, class: 'hemp-card__form' -%}
+                  <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+                  <button type="submit" class="hemp-card__add">
+                    {{ section.settings.add_label | default: 'Add' | escape }}
+                    <span class="visually-hidden"> — {{ product.title }}</span>
+                  </button>
+                {%- endform -%}
+              {%- else -%}
+                <span class="hemp-card__sold">Sold out</span>
+              {%- endif -%}
+            </div>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- else -%}
+      <p class="hemp-shelf__empty">
+        {{ section.settings.empty_text | default: 'The shelf is being stocked — products are on their way.' | escape }}
+      </p>
+    {%- endif -%}
+  </div>
+</section>
+
+{% stylesheet %}
+  .hemp-shelf__inner {
+    width: min(100% - 2 * var(--page-margin), var(--page-width));
+    margin-inline: auto;
+    display: grid;
+    gap: clamp(1.5rem, 3.5vw, 2.5rem);
+  }
+
+  .hemp-shelf__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .hemp-shelf__all {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding-block-end: 0.2rem;
+    border-block-end: 1px solid currentColor;
+    color: inherit;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    opacity: 0.85;
+  }
+
+  .hemp-shelf__all svg {
+    transition: transform 0.4s var(--hemp-ease);
+  }
+
+  .hemp-shelf__all:hover svg {
+    transform: translateX(0.3rem);
+  }
+
+  .hemp-shelf__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+    gap: clamp(1rem, 2vw, 1.75rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .hemp-card {
+    display: grid;
+    gap: 0.7rem;
+    min-width: 0;
+  }
+
+  .hemp-card__media {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 5;
+    border-radius: var(--hemp-radius);
+    overflow: hidden;
+    /* A visible plate behind a photograph that has not loaded yet — and a
+       deliberate block of green when a product simply has no image. */
+    background: rgb(248 244 232 / 0.07);
+  }
+
+  .hemp-card__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s var(--hemp-ease);
+  }
+
+  .hemp-card__media:hover .hemp-card__img {
+    transform: scale(1.05);
+  }
+
+  .hemp-badge {
+    position: absolute;
+    inset-block-start: 0.7rem;
+    inset-inline-start: 0.7rem;
+    padding: 0.35em 0.6em;
+    border-radius: 999px;
+    background: var(--hemp-lime);
+    color: var(--hemp-deep);
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+  }
+
+  .hemp-card__body {
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .hemp-card__vendor {
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    opacity: 0.55;
+  }
+
+  .hemp-card__title {
+    font-size: 0.98rem;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+
+  .hemp-card__title a {
+    color: inherit;
+    text-decoration: none;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0 1px;
+    transition: background-size 0.4s var(--hemp-ease);
+  }
+
+  .hemp-card__title a:hover {
+    background-size: 100% 1px;
+  }
+
+  .hemp-card__price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .hemp-card__now {
+    font-weight: 700;
+  }
+
+  .hemp-card__was {
+    font-size: 0.82rem;
+    opacity: 0.5;
+  }
+
+  .hemp-card__form {
+    margin-block-start: 0.35rem;
+  }
+
+  .hemp-card__add {
+    width: 100%;
+    padding: 0.7em 1em;
+    border: 1px solid rgb(248 244 232 / 0.28);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.3s var(--hemp-ease), color 0.3s var(--hemp-ease), border-color 0.3s var(--hemp-ease);
+  }
+
+  .hemp-card__add:hover {
+    background: var(--hemp-lime);
+    border-color: var(--hemp-lime);
+    color: var(--hemp-deep);
+  }
+
+  .hemp-card__sold {
+    margin-block-start: 0.35rem;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.5;
+  }
+
+  .hemp-shelf__empty {
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    border: 1px dashed rgb(248 244 232 / 0.25);
+    border-radius: var(--hemp-radius);
+    font-size: 0.95rem;
+    opacity: 0.75;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hemp-card__img,
+    .hemp-card__title a,
+    .hemp-shelf__all svg {
+      transition: none;
+    }
+    .hemp-card__media:hover .hemp-card__img {
+      transform: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Product shelf",
+  "settings": [
+    { "type": "text", "id": "kicker", "label": "Eyebrow", "default": "Best sellers" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "What everyone actually buys" },
+    { "type": "collection", "id": "collection", "label": "Collection" },
+    { "type": "range", "id": "limit", "label": "Products shown", "min": 2, "max": 12, "step": 1, "default": 4 },
+    {
+      "type": "select",
+      "id": "tone",
+      "label": "Colour",
+      "options": [
+        { "value": "deep", "label": "Deep green" },
+        { "value": "cream", "label": "Cream" }
+      ],
+      "default": "deep"
+    },
+    { "type": "checkbox", "id": "show_vendor", "label": "Show vendor", "default": false },
+    { "type": "checkbox", "id": "show_view_all", "label": "Show the view-all link", "default": true },
+    { "type": "text", "id": "view_all_label", "label": "View all label", "default": "View all" },
+    { "type": "text", "id": "add_label", "label": "Add button label", "default": "Add" },
+    {
+      "type": "text",
+      "id": "empty_text",
+      "label": "Text when there is nothing to show",
+      "default": "The shelf is being stocked — products are on their way."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product shelf"
+    }
+  ]
+}
+{% endschema %}

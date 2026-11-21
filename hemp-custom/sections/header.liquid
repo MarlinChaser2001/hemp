@@ -1,54 +1,273 @@
-<header>
-  <h2 class="header__title">
-    {{ shop.name | link_to: routes.root_url }}
-  </h2>
+{% comment %}
+  The header — a dark, glassy bar that gets out of the film's way.
 
-  <div class="header__menu">
-    {% for link in section.settings.menu.links %}
-      {{ link.title | link_to: link.url }}
-    {% endfor %}
-  </div>
+  Two behaviours, chosen by CSS rather than by a setting, because the page
+  decides: on the home page (the body has a `.hemp-hero`) the bar is
+  **absolute over the hero** and transparent, so the film runs edge to edge from
+  the very top; on every other page it is **sticky** with a blurred deep-green
+  fill, so the shop keeps its navigation once you have scrolled past the
+  announcement. `:has()` is doing the deciding, and it is already a dependency of
+  this theme's reset (`critical.css`).
 
-  <div class="header__icons">
-    {% if shop.customer_accounts_enabled %}
-      {{ 'icon-account.svg' | inline_asset_content | link_to: routes.account_url }}
-    {% endif %}
+  The brand is `{{ shop.name }}` and nothing else — when the shop is renamed in
+  Shopify admin, this is one of the places that follows for free.
+{% endcomment %}
 
-    <a href="{{ routes.cart_url }}">
-      {% if cart.item_count > 0 %}
-        <sup>{{ cart.item_count }}</sup>
-      {% endif %}
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="site-header__brand" href="{{ routes.root_url }}">{{ shop.name }}</a>
 
-      {{ 'icon-cart.svg' | inline_asset_content }}
-    </a>
-  </div>
-</header>
+    <nav class="site-header__nav" aria-label="Primary">
+      {%- for link in section.settings.menu.links -%}
+        <a href="{{ link.url }}"{% if link.active %} aria-current="page"{% endif %}>{{ link.title }}</a>
+      {%- endfor -%}
+    </nav>
+
+    <div class="site-header__icons">
+      {%- if shop.customer_accounts_enabled -%}
+        <a class="site-header__icon" href="{{ routes.account_url }}" aria-label="Account">
+          {{ 'icon-account.svg' | inline_asset_content }}
+        </a>
+      {%- endif -%}
+
+      <a
+        class="site-header__icon site-header__cart"
+        href="{{ routes.cart_url }}"
+        aria-label="Cart, {{ cart.item_count }} {{ cart.item_count | pluralize: 'item', 'items' }}"
+      >
+        {%- if cart.item_count > 0 -%}
+          <span class="site-header__count">{{ cart.item_count }}</span>
+        {%- endif -%}
+        {{ 'icon-cart.svg' | inline_asset_content }}
+      </a>
+
+      {%- if section.settings.menu.links.size > 0 -%}
+        <details class="site-header__drawer">
+          <summary class="site-header__burger">
+            <span class="visually-hidden">Menu</span>
+            <span class="site-header__burger-lines" aria-hidden="true"></span>
+          </summary>
+
+          <nav class="site-header__panel" aria-label="Primary">
+            {%- for link in section.settings.menu.links -%}
+              <a href="{{ link.url }}">{{ link.title }}</a>
+            {%- endfor -%}
+          </nav>
+        </details>
+      {%- endif -%}
 
 {% stylesheet %}
-  header {
-    height: 5rem;
+  /* The section wrapper is the grid Skeleton gives every section. Take the whole
+     width, and stick to the top on every page… */
+  body > .shopify-section:has(> .site-header) {
+    grid-column: 1 / -1;
+    position: sticky;
+    top: 0;
+    z-index: 60;
+  }
+
+  /* …except a page with a film, where the bar floats over it and the footage runs
+     from the very top of the viewport. */
+  body:has(.hemp-hero) > .shopify-section:has(> .site-header) {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+  }
+
+  .site-header {
+    grid-column: 1 / -1;
+    color: var(--hemp-cream);
+    background: color-mix(in oklab, var(--hemp-deep) 86%, transparent);
+    backdrop-filter: blur(16px) saturate(140%);
+    border-block-end: 1px solid rgb(248 244 232 / 0.08);
+  }
+
+  /* Over the film: no fill at all, just a whisper of shadow so the type holds. */
+  body:has(.hemp-hero) .site-header {
+    background: linear-gradient(180deg, rgb(11 36 25 / 0.55), rgb(11 36 25 / 0));
+    border-block-end: 0;
+    backdrop-filter: none;
+  }
+
+  .site-header__inner {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 1.5rem;
+    width: min(100% - 2 * var(--page-margin), var(--page-width));
+    margin-inline: auto;
+    min-height: 4.5rem;
+    padding-block: 0.75rem;
   }
-  header a {
-    position: relative;
+
+  .site-header__brand {
+    color: inherit;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
     text-decoration: none;
-    color: var(--color-foreground);
+    white-space: nowrap;
   }
-  header a sup {
-    position: absolute;
-    left: 100%;
-    overflow: hidden;
-    max-width: var(--page-margin);
-  }
-  header svg {
-    width: 2rem;
-  }
-  header .header__menu,
-  header .header__icons {
+
+  .site-header__nav {
     display: flex;
-    gap: 1rem;
+    align-items: center;
+    gap: clamp(1rem, 2vw, 2rem);
+  }
+
+  .site-header__nav a {
+    position: relative;
+    color: inherit;
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    opacity: 0.82;
+    transition: opacity 0.3s var(--hemp-ease);
+  }
+
+  .site-header__nav a::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: -0.4rem;
+    height: 1px;
+    background: var(--hemp-lime);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s var(--hemp-ease);
+  }
+
+  .site-header__nav a:hover,
+  .site-header__nav a[aria-current='page'] {
+    opacity: 1;
+  }
+
+  .site-header__nav a:hover::after,
+  .site-header__nav a[aria-current='page']::after {
+    transform: scaleX(1);
+  }
+
+  .site-header__icons {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .site-header__icon {
+    position: relative;
+    display: inline-flex;
+    color: inherit;
+  }
+
+  .site-header__icon svg {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+
+  .site-header__count {
+    position: absolute;
+    inset-block-start: -0.5em;
+    inset-inline-start: 0.5em;
+    min-width: 1.15em;
+    padding-inline: 0.28em;
+    border-radius: 999px;
+    background: var(--hemp-lime);
+    color: var(--hemp-deep);
+    font-size: 0.58rem;
+    font-weight: 800;
+    line-height: 1.2em;
+    text-align: center;
+  }
+
+  .site-header__drawer {
+    display: none;
+  }
+
+  .site-header__burger {
+    display: grid;
+    padding: 0.4rem;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .site-header__burger::-webkit-details-marker {
+    display: none;
+  }
+
+  .site-header__burger-lines {
+    position: relative;
+    display: block;
+    width: 1.25rem;
+    height: 2px;
+    background: currentColor;
+  }
+
+  .site-header__burger-lines::before,
+  .site-header__burger-lines::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    height: 2px;
+    background: currentColor;
+  }
+
+  .site-header__burger-lines::before {
+    top: -6px;
+  }
+
+  .site-header__burger-lines::after {
+    bottom: -6px;
+  }
+
+  .site-header__panel {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: calc(100% + 0.5rem);
+    display: grid;
+    padding: 0.5rem;
+    border: 1px solid rgb(248 244 232 / 0.1);
+    border-radius: var(--hemp-radius);
+    background: color-mix(in oklab, var(--hemp-deep) 96%, transparent);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 24px 60px -30px rgb(0 0 0 / 0.8);
+  }
+
+  .site-header__panel a {
+    padding: 0.85rem 1rem;
+    border-radius: 0.75rem;
+    color: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .site-header__panel a:hover {
+    background: rgb(216 242 107 / 0.12);
+    color: var(--hemp-lime);
+  }
+
+  @media (max-width: 899px) {
+    .site-header__nav {
+      display: none;
+    }
+    .site-header__drawer {
+      display: block;
+    }
+    .site-header__brand {
+      font-size: 0.82rem;
+      letter-spacing: 0.16em;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-header__nav a,
+    .site-header__nav a::after {
+      transition: none;
+    }
   }
 {% endstylesheet %}
 
@@ -64,3 +283,7 @@
   ]
 }
 {% endschema %}
+
+    </div>
+  </div>
+</header>

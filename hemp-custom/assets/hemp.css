@@ -1,0 +1,252 @@
+/**
+ * ─────────────────────────────────────────────────────────────────────────────
+ *  Hemp — the design system.
+ *
+ *  One file for the primitives every section shares (tokens, buttons, eyebrows,
+ *  section headings, the film grain), and each section carries its own layout in
+ *  a `{% stylesheet %}` block so Shopify only ships the CSS a page uses.
+ *
+ *  The palette is taken from the film: the deep green of the leaf shadow, the
+ *  lime of the backlit serration, the gold of the oil and the jar's lid, the
+ *  cream of the travertine. Colour is the whole point, so it lives here as
+ *  tokens rather than dribbled through sections.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+:root {
+  /* Green, in five steps — deep enough for text to live on, lime enough to shout. */
+  --hemp-deep: #0b2419;
+  --hemp-forest: #123627;
+  --hemp-moss: #2c4a2a;
+  --hemp-leaf: #4a5d23;
+  --hemp-lime: #d8f26b;
+
+  /* The warm half — straight out of the golden-hour grade. */
+  --hemp-gold: #c9a45c;
+  --hemp-oil: #e3b449;
+  --hemp-cream: #f8f4e8;
+  --hemp-sand: #ece0c9;
+
+  /* Ink for the cream surfaces. */
+  --hemp-ink: #14201a;
+  --hemp-ink-soft: #43524a;
+
+  --hemp-radius: 1.25rem;
+  --hemp-radius-lg: 2rem;
+  --hemp-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --hemp-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+}
+
+/* ── Type ────────────────────────────────────────────────────────────────────
+ * The body face is the merchant's (Settings → Typography). Display type is the
+ * same face pushed hard — heavy weight, tight tracking — with a serif italic
+ * available as `.hemp-em` for the one word in a headline that deserves a voice.
+ */
+.hemp-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--hemp-lime);
+}
+
+.hemp-eyebrow::before {
+  content: "";
+  width: 1.6em;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.7;
+}
+
+.hemp-display {
+  font-size: clamp(2.5rem, 6.4vw, 6rem);
+  line-height: 0.94;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.hemp-em {
+  font-family: var(--hemp-display);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.hemp-lede {
+  font-size: clamp(1rem, 1.1vw + 0.7rem, 1.2rem);
+  line-height: 1.5;
+  text-wrap: pretty;
+  max-width: 34ch;
+}
+
+/* ── Sections ────────────────────────────────────────────────────────────────
+ * Skeleton's `.shopify-section` is a three-column grid (margin | content |
+ * margin). These helpers keep every new section inside that contract instead of
+ * inventing its own width rules.
+ */
+.hemp-section {
+  padding-block: clamp(3.5rem, 7vw, 7rem);
+}
+
+.hemp-section--tight {
+  padding-block: clamp(2rem, 3.5vw, 3.5rem);
+}
+
+.hemp-section--deep {
+  background: var(--hemp-deep);
+  color: var(--hemp-cream);
+}
+
+.hemp-section--forest {
+  background: var(--hemp-forest);
+  color: var(--hemp-cream);
+}
+
+.hemp-section--cream {
+  background: var(--hemp-cream);
+  color: var(--hemp-ink);
+}
+
+.hemp-heading {
+  font-size: clamp(1.9rem, 3.4vw, 3.1rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.hemp-kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+/* A hairline that matches the ink it sits on. */
+.hemp-rule {
+  border: 0;
+  border-top: 1px solid currentColor;
+  opacity: 0.14;
+}
+
+/* ── Film grain ──────────────────────────────────────────────────────────────
+ * The video is filmic; the CSS on top of it should be too. An inline
+ * feTurbulence data URI costs one painted layer and no request.
+ */
+.hemp-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+/* Available to a screen reader, invisible to everyone else — used where a button's
+   own label is a bare verb ("Add") and the product's name has to travel with it. */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────────
+ * Two shapes: the lime pill (the one action a page wants) and the ghost (the
+ * second). Both wipe a fill up from the bottom on hover, which is the cheapest
+ * way to make a shop feel alive.
+ */
+.hemp-btn {
+  --btn-bg: var(--hemp-lime);
+  --btn-fg: var(--hemp-deep);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  padding: 1em 1.7em;
+  border: 0;
+  border-radius: 999px;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.35s var(--hemp-ease), box-shadow 0.35s var(--hemp-ease), color 0.35s var(--hemp-ease);
+}
+
+.hemp-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--hemp-cream);
+  transform: translateY(101%);
+  transition: transform 0.45s var(--hemp-ease);
+}
+
+.hemp-btn > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hemp-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -12px rgb(11 36 25 / 0.55);
+}
+
+.hemp-btn:hover::after {
+  transform: translateY(0);
+}
+
+.hemp-btn--ghost {
+  --btn-bg: transparent;
+  --btn-fg: var(--hemp-cream);
+  border: 1px solid rgb(248 244 232 / 0.35);
+}
+
+.hemp-btn--ghost:hover {
+  color: var(--hemp-deep);
+}
+
+.hemp-btn--dark {
+  --btn-bg: var(--hemp-deep);
+  --btn-fg: var(--hemp-cream);
+}
+
+.hemp-btn--dark::after {
+  background: var(--hemp-lime);
+}
+
+.hemp-btn--dark:hover {
+  color: var(--hemp-deep);
+}
+
+/* ── Motion, politely ────────────────────────────────────────────────────────
+ * Everything that moves is switched off here, because a shop that ignores this
+ * is a shop someone cannot use.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .hemp-btn,
+  .hemp-btn::after {
+    transition: none;
+  }
+  .hemp-btn:hover {
+    transform: none;
+  }
+}
+
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}

@@ -1,0 +1,451 @@
+{% comment %}
+  Hemp — the film hero.
+
+  The footage is 1920×1080 with its subject low in the frame and the top third
+  left as warm bokeh, so the copy is anchored top and the scrim is heaviest at
+  the top (a green-to-transparent gradient). That is what keeps white type
+  legible over a shot whose brightness changes as the oil falls.
+
+  The default film is the first ten seconds — the leaf and the aloe — cut and
+  compressed into `assets/hemp-hero-loop.mp4` (452 KB, 720p, silent). Shots 4–9
+  of the original include the jar's label, which carries the old shop mark, so
+  the branded end card belongs on the product page and not above the fold of a
+  page that is still waiting for its new name. `section.settings.video` replaces
+  the loop with anything from Content → Files when a film is ready.
+
+  Nothing here is required to be a video: with `prefers-reduced-motion` the same
+  poster is shown and the clip is never started.
+{% endcomment %}
+
+{%- liquid
+  assign poster_url = 'hemp-hero-poster.jpg' | asset_url
+  if section.settings.poster != blank
+    assign poster_url = section.settings.poster | image_url: width: 2400
+  endif
+  assign cta1_url = section.settings.cta1_link | default: routes.all_products_collection_url
+  assign cta2_url = section.settings.cta2_link | default: routes.collections_url
+-%}
+
+<section class="hemp-hero hemp-hero--{{ section.settings.height }} full-width" data-hemp-hero>
+  <div class="hemp-hero__media">
+    <video
+      class="hemp-hero__video"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="metadata"
+      poster="{{ poster_url }}"
+      aria-hidden="true"
+      tabindex="-1"
+    >
+      {%- if section.settings.video != blank -%}
+        {%- for source in section.settings.video.sources -%}
+          <source src="{{ source.url }}" type="{{ source.mime_type }}">
+        {%- endfor -%}
+      {%- else -%}
+        <source src="{{ 'hemp-hero-loop.mp4' | asset_url }}" type="video/mp4">
+      {%- endif -%}
+    </video>
+    <div class="hemp-hero__scrim" aria-hidden="true"></div>
+    <div class="hemp-grain" aria-hidden="true"></div>
+  </div>
+
+  <div class="hemp-hero__inner">
+    <div class="hemp-hero__copy">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="hemp-eyebrow">{{ section.settings.eyebrow | escape }}</p>
+      {%- endif -%}
+
+      <h1 class="hemp-display hemp-hero__title">
+        {{ section.settings.heading | escape }}
+        {%- if section.settings.heading_em != blank %} <span class="hemp-em">{{ section.settings.heading_em | escape }}</span>{% endif -%}
+      </h1>
+
+      {%- if section.settings.lede != blank -%}
+        <p class="hemp-lede hemp-hero__lede">{{ section.settings.lede | escape }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.cta1_label != blank or section.settings.cta2_label != blank -%}
+        <div class="hemp-hero__actions">
+          {%- if section.settings.cta1_label != blank -%}
+            <a class="hemp-btn" href="{{ cta1_url }}">
+              <span>{{ section.settings.cta1_label | escape }}</span>
+            </a>
+          {%- endif -%}
+          {%- if section.settings.cta2_label != blank -%}
+            <a class="hemp-btn hemp-btn--ghost" href="{{ cta2_url }}">
+              <span>{{ section.settings.cta2_label | escape }}</span>
+            </a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.note != blank -%}
+        <p class="hemp-hero__note">{{ section.settings.note | escape }}</p>
+      {%- endif -%}
+    </div>
+
+    <div class="hemp-hero__foot">
+      {%- if section.settings.footnote != blank -%}
+        <p class="hemp-hero__footnote">{{ section.settings.footnote | escape }}</p>
+      {%- else -%}
+        <span></span>
+      {%- endif -%}
+
+      {%- if section.settings.show_toggle -%}
+        <button
+          type="button"
+          class="hemp-hero__toggle"
+          data-hemp-video-toggle
+          aria-pressed="false"
+        >
+          <span class="hemp-hero__toggle-dot" aria-hidden="true"></span>
+          <span data-hemp-video-label>{{ 'Pause film' }}</span>
+        </button>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+<script>
+  (() => {
+    document.querySelectorAll('[data-hemp-hero]').forEach((hero) => {
+      if (hero.dataset.init) return;
+      hero.dataset.init = '1';
+
+      const video = hero.querySelector('video');
+      const toggle = hero.querySelector('[data-hemp-video-toggle]');
+      if (!video) return;
+
+      const label = toggle && toggle.querySelector('[data-hemp-video-label]');
+
+      const setPaused = (paused) => {
+        if (paused) {
+          video.pause();
+        } else {
+          const played = video.play();
+          if (played && played.catch) played.catch(() => {});
+        }
+        hero.dataset.paused = paused ? 'true' : 'false';
+        if (toggle) toggle.setAttribute('aria-pressed', String(paused));
+        if (label) label.textContent = paused ? 'Play film' : 'Pause film';
+      };
+
+      // A poster is a perfectly good hero. Nobody asked for motion they did not want.
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) setPaused(true);
+
+      toggle && toggle.addEventListener('click', () => setPaused(!video.paused));
+    });
+  })();
+</script>
+
+
+{% stylesheet %}
+  .hemp-hero {
+    position: relative;
+    display: grid;
+    isolation: isolate;
+    overflow: hidden;
+    color: var(--hemp-cream);
+    background: var(--hemp-deep);
+  }
+
+  .hemp-hero--screen {
+    min-height: 100svh;
+  }
+
+  .hemp-hero--tall {
+    min-height: 88svh;
+  }
+
+  .hemp-hero--medium {
+    min-height: 70svh;
+  }
+
+  .hemp-hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .hemp-hero__video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* The subject sits low in every shot; lift it just enough that the leaf and
+       the falling oil stay in frame when a phone crops the sides away. */
+    object-position: center 52%;
+    transform: scale(1.03);
+  }
+
+  /* Two jobs: make white type legible against a bright sky, and blend the bottom
+     of the film into the section below so the page reads as one surface. */
+  .hemp-hero__scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        180deg,
+        rgb(11 36 25 / 0.82) 0%,
+        rgb(11 36 25 / 0.55) 26%,
+        rgb(11 36 25 / 0.12) 52%,
+        rgb(11 36 25 / 0) 68%
+      ),
+      linear-gradient(0deg, var(--hemp-deep) 0%, rgb(11 36 25 / 0) 38%),
+      radial-gradient(120% 80% at 78% 6%, rgb(227 180 73 / 0.22), transparent 62%);
+  }
+
+  .hemp-hero__inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 2rem;
+    width: min(100% - 2 * var(--page-margin), var(--page-width));
+    margin-inline: auto;
+    padding-block: clamp(6rem, 13vh, 9.5rem) clamp(1.5rem, 4vh, 2.5rem);
+  }
+
+  .hemp-hero__copy {
+    max-width: 46rem;
+  }
+
+  .hemp-hero__title {
+    margin-block: 0.35em 0;
+  }
+
+  .hemp-hero__lede {
+    margin-block-start: 1.1rem;
+    color: rgb(248 244 232 / 0.82);
+  }
+
+  .hemp-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-block-start: clamp(1.5rem, 3vw, 2.25rem);
+  }
+
+  .hemp-hero__note {
+    margin-block-start: 1rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgb(248 244 232 / 0.62);
+  }
+
+  .hemp-hero__foot {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .hemp-hero__footnote {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(248 244 232 / 0.66);
+  }
+
+  .hemp-hero__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    padding: 0.55em 0.95em;
+    border: 1px solid rgb(248 244 232 / 0.28);
+    border-radius: 999px;
+    background: rgb(11 36 25 / 0.35);
+    backdrop-filter: blur(8px);
+    color: var(--hemp-cream);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .hemp-hero__toggle-dot {
+    width: 0.5em;
+    height: 0.5em;
+    border-radius: 50%;
+    background: var(--hemp-lime);
+    animation: hemp-pulse 2.4s var(--hemp-ease) infinite;
+  }
+
+  .hemp-hero__toggle[aria-pressed='true'] .hemp-hero__toggle-dot {
+    background: rgb(248 244 232 / 0.55);
+    animation: none;
+  }
+
+  @keyframes hemp-pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgb(216 242 107 / 0.55);
+    }
+    70% {
+      box-shadow: 0 0 0 0.5em rgb(216 242 107 / 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgb(216 242 107 / 0);
+    }
+  }
+
+  /* One entrance, staggered, and nothing to wait for. */
+  @media (prefers-reduced-motion: no-preference) {
+    .hemp-hero__copy > * {
+      animation: hemp-rise 0.9s var(--hemp-ease) both;
+    }
+    .hemp-hero__copy > *:nth-child(2) {
+      animation-delay: 0.08s;
+    }
+    .hemp-hero__copy > *:nth-child(3) {
+      animation-delay: 0.16s;
+    }
+    .hemp-hero__copy > *:nth-child(4) {
+      animation-delay: 0.24s;
+    }
+    .hemp-hero__copy > *:nth-child(5) {
+      animation-delay: 0.32s;
+    }
+  }
+
+  @keyframes hemp-rise {
+    from {
+      opacity: 0;
+      transform: translateY(1.1rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hemp-hero__toggle-dot {
+      animation: none;
+    }
+  }
+
+  @media (max-width: 749px) {
+    .hemp-hero {
+      min-height: 92svh;
+    }
+    .hemp-hero__video {
+      object-position: center 42%;
+    }
+    .hemp-hero__foot {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Film hero",
+  "settings": [
+    {
+      "type": "select",
+      "id": "height",
+      "label": "Height",
+      "options": [
+        { "value": "screen", "label": "Full screen" },
+        { "value": "tall", "label": "Tall" },
+        { "value": "medium", "label": "Medium" }
+      ],
+      "default": "tall"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Australian grown — cold pressed"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Grown for skin."
+    },
+    {
+      "type": "text",
+      "id": "heading_em",
+      "label": "Heading, italic accent",
+      "info": "Set in serif italic after the heading. Keep it to two or three words.",
+      "default": "Tested on paws."
+    },
+    {
+      "type": "textarea",
+      "id": "lede",
+      "label": "Intro",
+      "default": "Cold-pressed hemp seed oil, aloe and botanicals — for you, and for the ones who follow you everywhere."
+    },
+    {
+      "type": "text",
+      "id": "cta1_label",
+      "label": "Primary button",
+      "default": "Shop the range"
+    },
+    {
+      "type": "url",
+      "id": "cta1_link",
+      "label": "Primary link",
+      "info": "Empty links to all products."
+    },
+    {
+      "type": "text",
+      "id": "cta2_label",
+      "label": "Second button",
+      "default": "For pets"
+    },
+    {
+      "type": "url",
+      "id": "cta2_link",
+      "label": "Second link",
+      "info": "Empty links to the collection list."
+    },
+    {
+      "type": "text",
+      "id": "note",
+      "label": "Line under the buttons",
+      "default": "Free AU shipping over $80 · 30-day returns"
+    },
+    {
+      "type": "text",
+      "id": "footnote",
+      "label": "Footnote, bottom left",
+      "default": "Small batch · Third-party tested · Vegan"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_toggle",
+      "label": "Show the pause control",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Film"
+    },
+    {
+      "type": "video",
+      "id": "video",
+      "label": "Video",
+      "info": "Pick a file from Content → Files. Empty uses the ten-second loop built into the theme."
+    },
+    {
+      "type": "image_picker",
+      "id": "poster",
+      "label": "Poster frame",
+      "info": "Shown while the film loads, and instead of it for anyone who has asked for less motion."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Film hero"
+    }
+  ]
+}
+{% endschema %}

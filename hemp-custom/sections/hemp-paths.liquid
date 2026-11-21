@@ -1,0 +1,270 @@
+{% comment %}
+  Two or three doors, as tall cards.
+
+  This section carries the catalogue's shape: the old store's tags split it
+  cleanly into *for people* and *for pets* (23 handles, and the pet line is the
+  one that sells), with terpenes and oils as the enthusiast corner. Each card is
+  a block, so the shape can change without touching Liquid.
+
+  No image is fine: the card falls back to a green gradient derived from its
+  position, which reads as intentional rather than broken while photography is
+  being sorted.
+{% endcomment %}
+
+<section class="hemp-paths hemp-section hemp-section--cream full-width">
+  <div class="hemp-paths__inner">
+    <header class="hemp-paths__head">
+      {%- if section.settings.kicker != blank -%}
+        <p class="hemp-kicker">{{ section.settings.kicker | escape }}</p>
+      {%- endif -%}
+      {%- if section.settings.heading != blank -%}
+        <h2 class="hemp-heading">{{ section.settings.heading | escape }}</h2>
+      {%- endif -%}
+      {%- if section.settings.intro != blank -%}
+        <p class="hemp-paths__intro">{{ section.settings.intro | escape }}</p>
+      {%- endif -%}
+    </header>
+
+    <ul class="hemp-paths__grid">
+      {%- for block in section.blocks -%}
+        <li class="hemp-paths__item" {{ block.shopify_attributes }}>
+          <a
+            class="hemp-path hemp-path--{{ forloop.index }}"
+            href="{{ block.settings.link | default: routes.all_products_collection_url }}"
+          >
+            <span class="hemp-path__media">
+              {%- if block.settings.image != blank -%}
+                {{
+                  block.settings.image
+                  | image_url: width: 1200
+                  | image_tag:
+                    loading: 'lazy',
+                    sizes: '(min-width: 990px) 33vw, 88vw',
+                    widths: '400,600,900,1200',
+                    class: 'hemp-path__img',
+                    alt: block.settings.title
+                }}
+              {%- endif -%}
+            </span>
+            <span class="hemp-path__veil" aria-hidden="true"></span>
+
+            {%- if block.settings.badge != blank -%}
+              <span class="hemp-path__badge">{{ block.settings.badge | escape }}</span>
+            {%- endif -%}
+
+            <span class="hemp-path__copy">
+              {%- if block.settings.kicker != blank -%}
+                <span class="hemp-path__kicker">{{ block.settings.kicker | escape }}</span>
+              {%- endif -%}
+              <span class="hemp-path__title">{{ block.settings.title | escape }}</span>
+              {%- if block.settings.text != blank -%}
+                <span class="hemp-path__text">{{ block.settings.text | escape }}</span>
+              {%- endif -%}
+              <span class="hemp-path__cta">
+                {{ block.settings.cta | default: 'Shop now' | escape }}
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+                  <path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+            </span>
+          </a>
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+</section>
+
+
+{% stylesheet %}
+  .hemp-paths__inner {
+    width: min(100% - 2 * var(--page-margin), var(--page-width));
+    margin-inline: auto;
+    display: grid;
+    gap: clamp(1.75rem, 4vw, 3rem);
+  }
+
+  .hemp-paths__head {
+    display: grid;
+    gap: 0.75rem;
+    max-width: 44rem;
+  }
+
+  .hemp-paths__intro {
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--hemp-ink-soft);
+    max-width: 52ch;
+  }
+
+  .hemp-paths__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+    gap: clamp(0.75rem, 1.6vw, 1.25rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .hemp-path {
+    position: relative;
+    display: block;
+    aspect-ratio: 3 / 4;
+    border-radius: var(--hemp-radius-lg);
+    overflow: hidden;
+    color: var(--hemp-cream);
+    text-decoration: none;
+    isolation: isolate;
+    background: linear-gradient(160deg, var(--hemp-forest), var(--hemp-deep));
+  }
+
+  /* A different green per card, so a row of them has rhythm without photography. */
+  .hemp-path--2 {
+    background: linear-gradient(160deg, var(--hemp-moss), var(--hemp-forest));
+  }
+
+  .hemp-path--3 {
+    background: linear-gradient(160deg, var(--hemp-leaf), var(--hemp-moss));
+  }
+
+  .hemp-path__media,
+  .hemp-path__veil {
+    position: absolute;
+    inset: 0;
+  }
+
+  .hemp-path__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.9s var(--hemp-ease);
+  }
+
+  .hemp-path__veil {
+    background: linear-gradient(180deg, rgb(11 36 25 / 0.05) 20%, rgb(11 36 25 / 0.35) 52%, rgb(11 36 25 / 0.9) 100%);
+  }
+
+  .hemp-path__badge {
+    position: absolute;
+    inset-block-start: 1rem;
+    inset-inline-end: 1rem;
+    padding: 0.45em 0.8em;
+    border-radius: 999px;
+    background: var(--hemp-lime);
+    color: var(--hemp-deep);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .hemp-path__copy {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline: 0;
+    display: grid;
+    gap: 0.4rem;
+    padding: clamp(1.1rem, 2.4vw, 1.75rem);
+  }
+
+  .hemp-path__kicker {
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--hemp-lime);
+  }
+
+  .hemp-path__title {
+    font-size: clamp(1.5rem, 2.4vw, 2.1rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .hemp-path__text {
+    font-size: 0.86rem;
+    line-height: 1.45;
+    color: rgb(248 244 232 / 0.76);
+    max-width: 26ch;
+  }
+
+  .hemp-path__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-block-start: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .hemp-path__cta svg {
+    transition: transform 0.45s var(--hemp-ease);
+  }
+
+  .hemp-path:hover .hemp-path__img {
+    transform: scale(1.06);
+  }
+
+  .hemp-path:hover .hemp-path__cta svg {
+    transform: translateX(0.35rem);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hemp-path__img,
+    .hemp-path__cta svg {
+      transition: none;
+    }
+    .hemp-path:hover .hemp-path__img {
+      transform: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Shop by path",
+  "settings": [
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Eyebrow",
+      "default": "Find your thing"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "One plant. Two very different customers."
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Intro"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "path",
+      "name": "Path",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "kicker", "label": "Eyebrow" },
+        { "type": "text", "id": "title", "label": "Title", "default": "For you" },
+        { "type": "textarea", "id": "text", "label": "Text" },
+        { "type": "text", "id": "badge", "label": "Badge", "info": "Small lime pill, e.g. Best sellers." },
+        { "type": "text", "id": "cta", "label": "Link label", "default": "Shop now" },
+        { "type": "url", "id": "link", "label": "Link" }
+      ]
+    }
+  ],
+  "max_blocks": 3,
+  "presets": [
+    {
+      "name": "Shop by path",
+      "blocks": [{ "type": "path" }, { "type": "path" }]
+    }
+  ]
+}
+{% endschema %}
