@@ -20,7 +20,8 @@
     "theme:check": "shopify theme check",
     "theme:info": "shopify theme info",
     "theme:open": "shopify theme open",
-    "theme:package": "shopify theme package"
+    "theme:package": "shopify theme package",
+    "admin": "node scripts/admin.mjs"
   },
   "devDependencies": {
     "@shopify/cli": "^5.0.2"

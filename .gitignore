@@ -14,6 +14,9 @@ node_modules/
 # `shopify theme package` writes its uploadable archive here.
 *.zip
 
+# The Admin API token minted by scripts/admin.mjs, with its expiry beside it.
+.shopify-admin-token
+
 # ── Secrets ──────────────────────────────────────────────────────────────────
 # `.env` may hold a Theme Access password when one is used locally.
 .env
