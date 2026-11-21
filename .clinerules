@@ -62,6 +62,38 @@ honoured by 5.0.2 even though the docs page says `path` is ignored in environmen
    password, `shptka_…`), `SHOPIFY_FLAG_STORE`, `SHOPIFY_FLAG_NO_INPUT=1`,
    `SHOPIFY_FLAG_ALLOW_LIVE`.
 
+## The store
+
+`hemp-shack-dev-yxgdumgm.myshopify.com` — a **password-protected development store** (the
+storefront answers `302 → /password`), live theme id `191042486514`. The store handle and the
+theme path live in `shopify.theme.toml`; the scheme in `store = "https://…"` is tolerated and
+normalised by the CLI, though the canonical form is the bare `*.myshopify.com` host.
+
+## Authenticating — read this before debugging a 401
+
+There are two ways in, and they behave differently **in this machine's sandbox**:
+
+1. **Browser login** — `pnpm theme:login` in a terminal. The session lands in
+   `~/.config/shopify-cli-kit-nodejs/`. This CLI has **no device-code flow** (`auth login`
+   offers only `--no-input` and `--alias`), so it cannot be completed from inside the sandbox.
+2. **Theme Access password** — `shptka_…`, per store, from the Theme Access app. This is the
+   headless route: put it in `.env` (gitignored) and source it —
+   `set -a; . ./.env; set +a; pnpm theme:list`. It needs no login at all.
+
+**The Flatpak trap.** Inside this sandbox `XDG_CONFIG_HOME` is
+`/var/home/roger/.var/app/bot.cline.app/config`, so the CLI looks for a session in the app's
+own config directory and reports *"To run this command, log in to Shopify"* even when the host
+has a perfectly good session. Point it at the real one to reuse a terminal login:
+
+```bash
+XDG_CONFIG_HOME=/var/home/roger/.config pnpm theme:list
+```
+
+Measured 2026-11-21: that override gets past the login check and then failed with
+`401 — [API] Service is not valid for authentication` for a session that predates this store.
+A 401 is a *token* answer, not a store-address answer — check `--store` normalisation first,
+then re-login or switch to a Theme Access password rather than hunting the store name.
+
 ## Never
 
 - **Never push to the live theme** without being asked in as many words. `theme:push` asks
