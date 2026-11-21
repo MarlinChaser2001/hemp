@@ -1,44 +1,32 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# WordPress core is downloaded by scripts/setup-wp.sh, never committed.
-# Everything under wp-content that belongs to THIS project is tracked below.
+#  Hemp storefront — a Shopify theme developed with the Shopify CLI.
+#  Third-party things and machine-local things stay out of the repo.
 # ─────────────────────────────────────────────────────────────────────────────
-/wordpress/*
-!/wordpress/wp-content/
 
-# wp-content: track only our own theme + our own plugins + mu-plugins.
-/wordpress/wp-content/*
-!/wordpress/wp-content/themes/
-!/wordpress/wp-content/plugins/
-!/wordpress/wp-content/mu-plugins/
-
-# ...inside themes, only the Hemp theme is ours.
-/wordpress/wp-content/themes/*
-!/wordpress/wp-content/themes/hemp/
-
-# ...inside plugins, only plugins named hemp-* are ours. WooCommerce and every
-# other third-party plugin are installed by WP-CLI and stay out of git.
-/wordpress/wp-content/plugins/*
-!/wordpress/wp-content/plugins/hemp-*/
-
-# Runtime/state directories never belong in a repo.
-/wordpress/wp-content/uploads/
-/wordpress/wp-content/upgrade/
-/wordpress/wp-content/upgrade-temp-backup/
-/wordpress/wp-content/cache/
-/wordpress/wp-content/languages/
-/wordpress/wp-content/advanced-cache.php
-/wordpress/wp-content/object-cache.php
-/wordpress/wp-content/db.php
-/wordpress/wp-content/debug.log
-
-# Local config & secrets.
-.env
-/wordpress/wp-config.php
-/wordpress/.htaccess
-
-# Tooling / OS noise.
+# Dependencies.
 node_modules/
-vendor/
+
+# ── Shopify CLI state ────────────────────────────────────────────────────────
+# `.shopify/` is the CLI's own scratch directory: which store it last talked to,
+# the development theme id, cached session. Machine-local, never shared.
+.shopify/
+
+# `shopify theme package` writes its uploadable archive here.
+*.zip
+
+# ── Secrets ──────────────────────────────────────────────────────────────────
+# `.env` may hold a Theme Access password when one is used locally.
+.env
+.env.*
+!.env.example
+
+# ── Tooling / OS noise ───────────────────────────────────────────────────────
+pnpm-debug.log*
+*.log
 .DS_Store
 Thumbs.db
-*.log
+*.code-workspace
+
+# Python scratch used by skincare-commercial/ (the old-site scrape).
+.venv/
+__pycache__/

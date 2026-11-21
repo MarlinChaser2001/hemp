@@ -1,0 +1,6 @@
+# pnpm settings for this repo (not a monorepo — this file is where pnpm keeps
+# them). esbuild ships a prebuilt binary via a postinstall script; pnpm blocks
+# dependency build scripts by default, so it is allowed here explicitly rather
+# than left to a prompt nobody sees in CI.
+allowBuilds:
+  esbuild: true

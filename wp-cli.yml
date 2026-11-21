@@ -1,4 +1,0 @@
-# Defaults for a locally installed WP-CLI (`wp` on PATH) run from the repo root.
-# Docker users don't need this — the wpcli container already points at /var/www/html.
-path: wordpress
-url: http://localhost:8080

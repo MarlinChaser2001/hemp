@@ -1,0 +1,28 @@
+{
+  "name": "hemp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Hemp storefront — Shopify theme, developed with the Shopify CLI.",
+  "packageManager": "pnpm@11.17.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "shopify": "shopify",
+    "theme:login": "shopify auth login",
+    "theme:logout": "shopify auth logout",
+    "theme:list": "shopify theme list",
+    "theme:pull": "shopify theme pull",
+    "theme:dev": "shopify theme dev",
+    "theme:push": "shopify theme push",
+    "theme:push:unpublished": "shopify theme push --unpublished",
+    "theme:publish": "shopify theme publish",
+    "theme:check": "shopify theme check",
+    "theme:info": "shopify theme info",
+    "theme:open": "shopify theme open",
+    "theme:package": "shopify theme package"
+  },
+  "devDependencies": {
+    "@shopify/cli": "^5.0.2"
+  }
+}

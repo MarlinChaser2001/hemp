@@ -1,0 +1,36 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Theme environments — the flags shared by every `shopify theme …` command.
+#  https://shopify.dev/docs/storefronts/themes/tools/cli/environments
+#
+#  `[environments.default]` is applied when no --environment is passed. Precedence
+#  is: flag on the command line  >  environment variable  >  this file.
+#
+#  Fill in `store` with the store's myshopify domain (the *.myshopify.com one,
+#  not the custom domain) and `theme` with the id `pnpm theme:list` prints.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[environments.default]
+# ← change this to your store's *.myshopify.com domain. It is a placeholder on
+#   purpose: until it is edited, every theme command says *"Please provide a
+#   valid environment"* rather than guessing which store to touch.
+store = "your-store.myshopify.com"
+# theme = "123456789012"
+
+#  Where the theme files live, relative to this file. The canonical Shopify
+#  layout has them at the repo root; this repo keeps them in `hemp-custom/`.
+path = "./hemp-custom"
+
+#  A Theme Access password (shptka_…) belongs here only on a machine you own,
+#  and this file is tracked — so prefer the environment variable, which is what
+#  CI and any browser-less box should use:
+#      SHOPIFY_CLI_THEME_TOKEN=shptka_… pnpm theme:push --allow-live
+# password = "shptka_…"
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  A second target — a client preview store, or a staging theme. Use it with
+#  `pnpm theme:dev --environment staging` (or `-e staging`).
+# ─────────────────────────────────────────────────────────────────────────────
+
+# [environments.staging]
+# store = "your-store-staging.myshopify.com"
+# theme = "987654321098"

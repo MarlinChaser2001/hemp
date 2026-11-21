@@ -1,0 +1,96 @@
+# Hemp storefront — instructions for an LLM agent
+
+Shopify theme for **Hemp**, worked on with the Shopify CLI from this repo root. Read this
+before touching anything; most of it is a measurement, not a preference.
+
+## Toolchain (measured 2026-11-21)
+
+| Tool | How | What |
+| --- | --- | --- |
+| `node` | bare | v22.23.1 — the CLI's own floor is 22.12 |
+| `pnpm` | bare | 11.17.0, pinned by `packageManager` in `package.json` |
+| `shopify` | `pnpm shopify …` | `@shopify/cli` **5.0.2**, a devDependency. Not global, not on PATH |
+
+`pnpm install` must exit 0 and `pnpm shopify version` must print 5.0.2 before you trust
+anything else.
+
+## Layout
+
+```
+hemp/
+├── hemp-custom/          ← THE THEME. Shopify Skeleton Theme v0.1.0 (MIT), 39 files
+├── package.json          @shopify/cli + the theme:* commands
+├── shopify.theme.toml    store, theme id and path, per environment
+├── pnpm-workspace.yaml   pnpm settings — see "never delete" below
+├── .env.example          the CLI's environment variables, documented
+├── skincare-commercial/  old-site product scrape + ad media. NOT the storefront
+└── .env                  GEMINI_API_KEY for the scripts in skincare-commercial/
+```
+
+Shopify's canonical layout puts theme files at the repo root. This repo keeps them in
+`hemp-custom/`, so `shopify.theme.toml` carries `path = "./hemp-custom"` — that **is**
+honoured by 5.0.2 even though the docs page says `path` is ignored in environments. Do not
+"tidy" the theme up to the root without being asked; it would change every command.
+
+## Commands
+
+`pnpm run` lists them. All forwarded arguments go to the CLI:
+`pnpm theme:push --unpublished`, `pnpm theme:check --output json`.
+
+| Command | What it does | Needs auth | Needs a store |
+| --- | --- | --- | --- |
+| `pnpm theme:check` | Theme Check — 39 files, currently **0 offences** | no | no |
+| `pnpm theme:dev` | preview with hot reload on a *development* theme | yes | yes |
+| `pnpm theme:pull` | store → repo | yes | yes |
+| `pnpm theme:push` | repo → store theme | yes | yes |
+| `pnpm theme:list` / `info` / `open` / `publish` / `push:unpublished` / `package` | see README | yes | yes |
+| `pnpm theme:login` / `theme:logout` | browser session | — | — |
+
+**Why every script is `theme:`-prefixed.** `pnpm list`, `pnpm info`, `pnpm publish` and
+`pnpm logout` are *pnpm's own* commands and win over a script of the same name — measured:
+`pnpm info --no-input` answered `[ERROR] Unknown option: 'input'` because it ran
+`pnpm view`. Never add a script whose bare name collides with a pnpm built-in.
+
+## The two things that will bite
+
+1. **`shopify.theme.toml` ships with a placeholder store** (`your-store.myshopify.com`).
+   Until it is edited, every authenticated command fails with *"Please provide a valid
+   environment"* — that is the placeholder, not a broken checkout. Precedence is
+   **command flag > environment variable > `shopify.theme.toml`**.
+2. **The CLI does not read `.env`.** Those variables have to be exported (shell, direnv,
+   CI secret). `.env.example` documents them: `SHOPIFY_CLI_THEME_TOKEN` (Theme Access
+   password, `shptka_…`), `SHOPIFY_FLAG_STORE`, `SHOPIFY_FLAG_NO_INPUT=1`,
+   `SHOPIFY_FLAG_ALLOW_LIVE`.
+
+## Never
+
+- **Never push to the live theme** without being asked in as many words. `theme:push` asks
+  first; `--allow-live` / `SHOPIFY_FLAG_ALLOW_LIVE` is the only non-interactive route.
+  Do not put it in a script.
+- **Never commit** a `shptka_…` token, `.env`, `.shopify/` (CLI session + dev theme id),
+  `node_modules/`, `*.zip`. They are already gitignored — keep it that way.
+- **Never delete `pnpm-workspace.yaml`.** It holds `allowBuilds: esbuild: true`; without it
+  `pnpm install` fails with `ERR_PNPM_IGNORED_BUILDS` and exit 1 (measured).
+- **Never invent theme files.** `hemp-custom/` is the Skeleton theme; a missing section or
+  template is a design decision, not a gap to fill with a guess.
+- **Never touch** `skincare-commercial/` or `.env` as part of storefront work. That folder
+  is the old-site scrape (`old site/hempshack-products.csv` + `images/`) and the ad
+  media; the storefront does not read it.
+
+## Direction of a sync
+
+`theme:pull` overwrites **local** files with the store's. `theme:push` overwrites the
+**store**. Say which one you are about to run before running it, and never run either to
+"see what happens".
+
+## History worth knowing
+
+This repo was a WordPress + WooCommerce scaffold until 2026-11-21. `1013d5b`, `f8c339b` and
+`aadc936` still hold it — `git show 1013d5b:wordpress/wp-content/themes/hemp/theme.json`.
+The one thing worth reusing is the old palette, for the theme's colour scheme:
+
+`#4a5d23` hemp green · `#8a9a5b` sage · `#f5f1e6` cream · `#1f2421` charcoal
+
+There is **no `.github/` and no CI** — nothing deploys automatically. `origin` is
+`https://github.com/MarlinChaser2001/hemp.git`, so `git push` publishes the *repository* and
+does no store work. A push to Shopify remains a deliberate, interactive act.
