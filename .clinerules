@@ -121,11 +121,20 @@ live"*, and a browser still rendered Horizon — because the tab's URL carried
 Force it with `?preview_theme_id=<our id>` before doubting the publish, and check the address bar
 before re-uploading anything.
 
-**Anonymous visitors see Shopify's password page, not ours.** The storefront answers `302 →
-/password` with Shopify's *hosted* screen (no `critical.css`, no `hemp.css`, `assets/static` only),
-so the theme's `sections/password.liquid` is not what the public meets — and `/products.json` is
-closed behind the same gate. Switching password protection off (Online Store → Preferences) is what
-makes the design, and the public product JSON, visible.
+**Anonymous visitors see Shopify's password page, not ours — and it cannot be switched off.** The
+storefront answers `302 → /password` with Shopify's *hosted* screen (no `critical.css`, no
+`hemp.css`, `assets/static` only), so the theme's `sections/password.liquid` is not what the public
+meets, and `/products.json` is closed behind the same gate. This store is a **client transfer / dev
+store**, and Shopify's own limitation list says: *"You can't deactivate private mode for the online
+store. You can customize and preview the Password landing page."* So do not send the merchant
+hunting for a toggle that is not there — the gate lifts when the store is transferred to the client,
+not before.
+
+What works instead: **sign in as staff** (the "Are you the store owner? Log in here" link on the
+password page) or use the admin's eye icon beside *Online store*, then browse the real theme;
+`?preview_theme_id=<id>` forces a theme for a signed-in visitor. For reading products while the
+storefront JSON is closed, an Admin API token is the only route — a Theme Access password cannot
+read them.
 
 ## Never
 
