@@ -10,11 +10,14 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 [environments.default]
-# ← change this to your store's *.myshopify.com domain. It is a placeholder on
-#   purpose: until it is edited, every theme command says *"Please provide a
-#   valid environment"* rather than guessing which store to touch.
-store = "your-store.myshopify.com"
-# theme = "123456789012"
+# The store's *.myshopify.com host. The CLI normalises a scheme away, so
+# `https://…` would work too — the bare host is the canonical form.
+store = "hemp-shack-dev-yxgdumgm.myshopify.com"
+# The theme to work on, by id. Left unset on purpose so `theme:push` cannot land
+# on a theme nobody named: pass it, or uncomment to pin the draft this repo
+# publishes to. Known ids: 191042486514 Horizon (live),
+# 191043567858 Development, 191044026610 "Hemp custom" (this theme).
+# theme = "191044026610"
 
 #  Where the theme files live, relative to this file. The canonical Shopify
 #  layout has them at the repo root; this repo keeps them in `hemp-custom/`.

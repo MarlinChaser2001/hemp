@@ -94,6 +94,26 @@ Measured 2026-11-21: that override gets past the login check and then failed wit
 A 401 is a *token* answer, not a store-address answer — check `--store` normalisation first,
 then re-login or switch to a Theme Access password rather than hunting the store name.
 
+**The token route is the one that works here**, measured end to end the same day:
+
+```bash
+cd ~/Desktop/hemp && set -a && . ./.env && set +a && pnpm theme:list
+```
+
+That answered the theme library and `pnpm theme:push --unpublished --theme "Hemp custom"`
+uploaded the theme. The storefront is **password-protected**, so preview links ask for the
+storefront password, not an admin login — and no fetch from this sandbox can render the theme
+without it. Verification here is Theme Check plus the theme editor, not a screenshot.
+
+**Store facts measured 2026-11-21.** The live theme is **Horizon** (#191042486514), *not* this
+repo's Skeleton fork, and there is a development theme from the host machine (#191043567858).
+So `theme:pull` brings Horizon down and would replace `hemp-custom/` — only ever pull with
+`--theme <id>` after meaning it.
+
+Pushed drafts are named and disposable: `Hemp custom` is #191044026610, created with
+`theme:push --unpublished --theme "Hemp custom"` and removable with
+`theme:delete --theme 191044026610`.
+
 ## Never
 
 - **Never push to the live theme** without being asked in as many words. `theme:push` asks
