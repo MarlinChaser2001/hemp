@@ -9,7 +9,9 @@
         "heading_em": "Tested on paws.",
         "lede": "Cold-pressed hemp seed oil, aloe and botanicals — for you, and for the ones who follow you everywhere.",
         "cta1_label": "Shop the range",
+        "cta1_link": "/collections/all",
         "cta2_label": "For pets",
+        "cta2_link": "/collections/all-pets",
         "note": "Free AU shipping over $80 · 30-day returns",
         "footnote": "Small batch · Third-party tested · Vegan",
         "show_toggle": true
@@ -33,7 +35,8 @@
             "kicker": "For you",
             "title": "Skin, hair and sleep",
             "text": "Seed oil, balms and the Hemp Calm jar from the film.",
-            "cta": "Shop for you"
+            "cta": "Shop for you",
+            "link": "/collections/personal-care"
           }
         },
         "them": {
@@ -43,7 +46,8 @@
             "title": "Paws, coats and joints",
             "text": "Bedding, sprays and chews — the line our customers ask for by name.",
             "badge": "Best sellers",
-            "cta": "Shop for pets"
+            "cta": "Shop for pets",
+            "link": "/collections/all-pets"
           }
         },
         "terpenes": {
@@ -52,7 +56,8 @@
             "kicker": "For the curious",
             "title": "Terpenes and oils",
             "text": "Single isolates and full profiles, for people who read the label twice.",
-            "cta": "Browse terpenes"
+            "cta": "Browse terpenes",
+            "link": "/collections/terpenes"
           }
         }
       },
@@ -68,6 +73,7 @@
       "settings": {
         "kicker": "Best sellers",
         "heading": "What everyone actually buys",
+        "collection": "best-sellers",
         "limit": 4,
         "tone": "deep",
         "show_view_all": true
