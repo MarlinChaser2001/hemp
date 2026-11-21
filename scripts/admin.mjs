@@ -81,13 +81,38 @@ async function mintToken() {
     }),
   });
 
-  const body = await response.json().catch(() => ({}));
+  // Read the body once: this endpoint answers JSON on success and an HTML page on failure, and a
+  // body can only be consumed a single time.
+  const text = await response.text().catch(() => "");
+  let body = {};
+  try {
+    body = JSON.parse(text);
+  } catch {
+    // Not JSON — Shopify's HTML error page. The code is scraped out below.
+  }
+
   if (!response.ok || !body.access_token) {
-    const why = body.error_description ?? body.error ?? `${response.status} ${response.statusText}`;
-    console.error(`Token request failed: ${why}`);
-    console.error(
-      "The grant needs the app to be INSTALLED on this store, with its scopes saved to a version.",
-    );
+    /*
+     * Shopify answers this endpoint with an HTML page on failure, not JSON, and the useful part is
+     * one token in the markup: `Oauth error app_not_installed`. Digging it out is worth it, because
+     * "400 Bad Request" sends people to their credentials when the real fault is that nobody
+     * clicked Install.
+     */
+    const code = body.error ?? /Oauth error ([a-z_]+)/i.exec(text)?.[1] ?? String(response.status);
+    console.error(`Token request failed: ${code}`);
+    if (code === "app_not_installed") {
+      console.error(
+        `The app is not installed on ${SHOP}. In the Dev Dashboard open the app and install it on ` +
+          `this store (a custom-distribution app has an install link); or make a custom app inside ` +
+          `the store admin, press Install, and use its shpat token instead (SHOPIFY_ADMIN_ACCESS_TOKEN).`,
+      );
+    } else if (code === "invalid_client") {
+      console.error("The client ID or secret does not match the app — re-copy both from the Dev Dashboard.");
+    } else {
+      console.error(
+        "The grant also needs the app's scopes saved to a version, not just ticked in the editor.",
+      );
+    }
     process.exit(1);
   }
 
