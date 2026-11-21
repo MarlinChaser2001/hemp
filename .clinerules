@@ -114,6 +114,19 @@ Pushed drafts are named and disposable: `Hemp custom` is #191044026610, created 
 `theme:push --unpublished --theme "Hemp custom"` and removable with
 `theme:delete --theme 191044026610`.
 
+**`[live]` is not what the browser shows** (measured 2026-11-21, and it cost the
+merchant an evening). The theme list said `Hemp custom [live]`, `theme:publish` answered *"already
+live"*, and a browser still rendered Horizon — because the tab's URL carried
+`?preview_theme_id=191042486514`. A query string outlives the publish, and so does a pinned tab.
+Force it with `?preview_theme_id=<our id>` before doubting the publish, and check the address bar
+before re-uploading anything.
+
+**Anonymous visitors see Shopify's password page, not ours.** The storefront answers `302 →
+/password` with Shopify's *hosted* screen (no `critical.css`, no `hemp.css`, `assets/static` only),
+so the theme's `sections/password.liquid` is not what the public meets — and `/products.json` is
+closed behind the same gate. Switching password protection off (Online Store → Preferences) is what
+makes the design, and the public product JSON, visible.
+
 ## Never
 
 - **Never push to the live theme** without being asked in as many words. `theme:push` asks
