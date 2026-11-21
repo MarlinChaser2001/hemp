@@ -81,15 +81,52 @@
     },
     "field": {
       "type": "hemp-field",
+      "blocks": {
+        "horses": {
+          "type": "product",
+          "settings": {
+            "collection": "horses",
+            "label": "Hemp for horses",
+            "tooltip": "Joints, coats and calm — the horse range",
+            "link": "/collections/horses"
+          }
+        },
+        "pets": {
+          "type": "product",
+          "settings": {
+            "collection": "all-pets",
+            "label": "Hemp for dogs and cats",
+            "tooltip": "Bedding, chews and sprays — the pet line",
+            "link": "/collections/all-pets"
+          }
+        },
+        "people": {
+          "type": "product",
+          "settings": {
+            "collection": "personal-care",
+            "label": "Hemp for people",
+            "tooltip": "Balms, oils and creams for skin",
+            "link": "/collections/personal-care"
+          }
+        },
+        "terpenes": {
+          "type": "product",
+          "settings": {
+            "collection": "terpenes",
+            "label": "Terpenes and isolates",
+            "tooltip": "Strain blends and single isolates",
+            "link": "/collections/terpenes"
+          }
+        }
+      },
+      "block_order": ["horses", "pets", "people", "terpenes"],
       "settings": {
         "eyebrow": "From the paddock",
         "heading": "Sown here.",
         "heading_em": "Picked the same week.",
         "lede": "Australian-grown hemp, cut and cold-pressed in small batches — the reason one drop does what it does.",
         "cta_label": "Shop the range",
-        "cta_link": "/collections/all",
-        "collection": "all-pets",
-        "limit": 4
+        "cta_link": "/collections/all"
       }
     },
     "ingredients": {
