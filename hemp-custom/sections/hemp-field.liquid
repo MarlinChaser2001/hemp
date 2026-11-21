@@ -1,0 +1,198 @@
+{% comment %}
+  **The field** — the plate the merchant had made, used the way it was drawn.
+
+  The artwork is a photograph of the hemp field with a log along the bottom edge and a genuinely
+  transparent sky, so this section paints the sky in CSS and lets the photograph supply the ground.
+  That keeps the type readable whatever the weather in the picture, and means the band can be any
+  height the page needs without stretching a photograph.
+
+  The log is a **shelf**: an optional product image sits on it, centred, with its own shadow — so
+  the same section works as a scene (before there is product photography) and as a staged product
+  shot afterwards.
+
+  Everything about it degrades politely: no product image, just the field; no field image, just a
+  painted sky and the copy.
+{% endcomment %}
+
+<section class="hemp-field full-width">
+  <div class="hemp-field__sky" aria-hidden="true"></div>
+
+  {%- liquid
+    assign plate_src = 'hemp-field.webp' | asset_url
+    if section.settings.field_image != blank
+      assign plate_src = section.settings.field_image | image_url: width: 2000
+    endif
+  -%}
+
+  <img
+    class="hemp-field__plate"
+    src="{{ plate_src }}"
+    alt=""
+    width="1600"
+    height="600"
+    loading="lazy"
+  >
+
+  {%- if section.settings.product_image != blank -%}
+    <img
+      class="hemp-field__product"
+      src="{{ section.settings.product_image | image_url: width: 900 }}"
+      alt="{{ section.settings.product_image.alt | default: '' | escape }}"
+      width="{{ section.settings.product_image.width }}"
+      height="{{ section.settings.product_image.height }}"
+      loading="lazy"
+    >
+  {%- endif -%}
+
+  <div class="hemp-field__inner">
+    {%- if section.settings.eyebrow != blank -%}
+      <p class="hemp-eyebrow hemp-field__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+    {%- endif -%}
+
+    <h2 class="hemp-field__title">
+      {{ section.settings.heading | escape }}
+      {%- if section.settings.heading_em != blank %} <span class="hemp-em">{{ section.settings.heading_em | escape }}</span>{% endif -%}
+    </h2>
+
+    {%- if section.settings.lede != blank -%}
+      <p class="hemp-field__lede">{{ section.settings.lede | escape }}</p>
+    {%- endif -%}
+
+    {%- if section.settings.cta_label != blank -%}
+      <a class="hemp-btn hemp-btn--dark hemp-field__cta" href="{{ section.settings.cta_link | default: routes.all_products_collection_url }}">
+        <span>{{ section.settings.cta_label | escape }}</span>
+      </a>
+    {%- endif -%}
+  </div>
+</section>
+
+{% stylesheet %}
+  .hemp-field {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    align-content: start;
+    min-height: clamp(30rem, 46vw, 40rem);
+    overflow: hidden;
+    /* A morning sky: the photograph's own sky is transparent, so this is what shows through. */
+    background: linear-gradient(180deg, #e9f1de 0%, #f7f2e3 46%, #dee7cc 100%);
+  }
+
+  .hemp-field__sky {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(70% 50% at 78% 12%, rgb(227 180 73 / 0.22), transparent 70%);
+    z-index: 0;
+  }
+
+  .hemp-field__plate {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    width: 100%;
+    height: auto;
+    z-index: 1;
+  }
+
+  .hemp-field__product {
+    position: absolute;
+    inset-block-end: 11%;
+    inset-inline-start: 50%;
+    translate: -50% 0;
+    max-height: 46%;
+    width: auto;
+    z-index: 2;
+    filter: drop-shadow(0 22px 18px rgb(29 20 12 / 0.35));
+  }
+
+  .hemp-field__inner {
+    position: relative;
+    z-index: 3;
+    width: min(100% - 2 * var(--page-margin), var(--page-width));
+    margin-inline: auto;
+    padding-block: clamp(2.5rem, 5vw, 4rem) clamp(2rem, 4vw, 3rem);
+    display: grid;
+    gap: 0.9rem;
+    justify-items: start;
+    max-width: none;
+  }
+
+  /* Lime is for dark ground; on a morning sky it vanishes, so the eyebrow goes moss. */
+  .hemp-field__eyebrow {
+    color: var(--hemp-moss);
+  }
+
+  .hemp-field__title {
+    max-width: 22ch;
+    font-size: clamp(1.9rem, 3.6vw, 3.2rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-weight: 800;
+    color: var(--hemp-ink);
+    text-wrap: balance;
+  }
+
+  .hemp-field__lede {
+    max-width: 44ch;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--hemp-ink-soft);
+  }
+
+  .hemp-field__cta {
+    margin-block-start: 0.5rem;
+  }
+
+  @media (max-width: 749px) {
+    .hemp-field {
+      min-height: 27rem;
+    }
+    /* A 2.67:1 landscape on a phone is a sliver; fill the band and let the middle go. */
+    .hemp-field__plate {
+      width: 100%;
+      height: 58%;
+      object-fit: cover;
+      object-position: bottom;
+    }
+    .hemp-field__product {
+      max-height: 34%;
+      inset-block-end: 16%;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Field band",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "From the paddock" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Sown here." },
+    { "type": "text", "id": "heading_em", "label": "Heading, italic accent", "default": "Picked the same week." },
+    {
+      "type": "textarea",
+      "id": "lede",
+      "label": "Text",
+      "default": "Australian-grown hemp, cut and cold-pressed in small batches — the reason one drop does what it does."
+    },
+    { "type": "text", "id": "cta_label", "label": "Button", "default": "Shop the range" },
+    { "type": "url", "id": "cta_link", "label": "Button link", "info": "Empty links to all products." },
+    {
+      "type": "image_picker",
+      "id": "product_image",
+      "label": "Product to stand on the log",
+      "info": "A cut-out with transparency. Leave empty for the field on its own."
+    },
+    {
+      "type": "image_picker",
+      "id": "field_image",
+      "label": "Replace the field artwork",
+      "info": "Transparent sky, log along the bottom. Empty uses the one built into the theme."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Field band"
+    }
+  ]
+}
+{% endschema %}

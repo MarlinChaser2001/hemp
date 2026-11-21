@@ -69,6 +69,14 @@ storefront answers `302 → /password`), live theme id `191042486514`. The store
 theme path live in `shopify.theme.toml`; the scheme in `store = "https://…"` is tolerated and
 normalised by the CLI, though the canonical form is the bare `*.myshopify.com` host.
 
+**Measured 2026-11-21: the storefront is not reliably serving, and the reason is the plan.** A
+browser fetched at `/` rendered Shopify's *"Store unavailable — Did you mean …? Start a free trial"*
+page while a plain `curl` to the same URL still got the password gate, and the Admin API and theme
+push kept working throughout. A store in that state cannot install apps either (the $18 the merchant
+was asked for), and it is why the storefront appeared to serve different themes at different times.
+Treat "unavailable", "another theme", and "cannot install an app" as one symptom: the store needs a
+plan before any of it settles. Do not go hunting the theme again for those.
+
 ## Authenticating — read this before debugging a 401
 
 There are two ways in, and they behave differently **in this machine's sandbox**:

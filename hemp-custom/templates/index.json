@@ -79,6 +79,17 @@
         "show_view_all": true
       }
     },
+    "field": {
+      "type": "hemp-field",
+      "settings": {
+        "eyebrow": "From the paddock",
+        "heading": "Sown here.",
+        "heading_em": "Picked the same week.",
+        "lede": "Australian-grown hemp, cut and cold-pressed in small batches — the reason one drop does what it does.",
+        "cta_label": "Shop the range",
+        "cta_link": "/collections/all"
+      }
+    },
     "ingredients": {
       "type": "hemp-ingredients",
       "blocks": {
@@ -112,5 +123,5 @@
       }
     }
   },
-  "order": ["hero", "ticker", "paths", "shelf", "ingredients"]
+  "order": ["hero", "ticker", "paths", "shelf", "field", "ingredients"]
 }
