@@ -134,6 +134,19 @@
         "cta_link": "/collections/all"
       }
     },
+    "feature": {
+      "type": "hemp-feature",
+      "settings": {
+        "kicker": "This month",
+        "heading": "Hemp Calm",
+        "note": "19 seconds, silent",
+        "cta_label": "Shop Hemp Calm",
+        "cta_link": "/collections/personal-care",
+        "footnote": "Small batch \u2014 while it lasts",
+        "show_buy_now": true,
+        "use_product_title": true
+      }
+    },
     "ingredients": {
       "type": "hemp-ingredients",
       "blocks": {
@@ -162,10 +175,10 @@
       "block_order": ["hemp", "aloe", "macadamia"],
       "settings": {
         "kicker": "Inside the jar",
-        "heading": "Three ingredients. Nothing hidden.",
-        "intro": "Everything the film pours is in the formula — cold-pressed hemp, aloe and botanicals, and nothing you would need a chemist to explain."
+        "heading": "Three that do the work.",
+        "intro": "The film picks out three \u2014 cold-pressed hemp seed oil, aloe and macadamia. They are the ones doing the work; the rest of the formula is on every label."
       }
     }
   },
-  "order": ["hero", "ticker", "paths", "shelf", "field", "ingredients"]
+  "order": ["hero", "ticker", "paths", "shelf", "field", "feature", "ingredients"]
 }

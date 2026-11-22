@@ -64,24 +64,29 @@ honoured by 5.0.2 even though the docs page says `path` is ignored in environmen
 
 ## Upload errors `theme:check` does not catch
 
-**Theme Check passing is not the same as Shopify accepting the theme.** Measured 2026-11-22: an
-upload was refused with
+**Theme Check passing is not the same as Shopify accepting the theme.** Two uploads have now been
+refused on schema rules Theme Check reports nothing for — `theme:check` was **0 offences on 47 files**
+both times:
 
 ```
 Invalid block 'product': setting with id="nudge" step invalid.
 Range settings must have at most 101 steps
+
+Invalid schema: setting with id="lede" default can't be blank
 ```
 
-The rule is `(max - min) / step <= 100`. `min: -300, max: 300, step: 5` is 120 steps — valid JSON,
-valid Liquid, **0 offences under `theme:check`**, and rejected on push. Run the checker before
-anything that uploads:
+- A range is legal only when `(max - min) / step <= 100`. `min: -300, max: 300, step: 5` is 120.
+- A **blank default is itself invalid**: `"default": ""` must be the key *omitted*, not emptied.
+
+Both are valid JSON, valid Liquid, and invisible to Theme Check. Run the checker before anything that
+uploads:
 
 ```bash
-pnpm check:ranges     # 6 range settings, all within 100 steps.
+pnpm check:schema     # 107 settings checked — range steps, blank defaults and duplicate ids all clear.
 ```
 
-It walks every schema in `hemp-custom/` and exits 1, naming the file, block and id, if a range is
-over the limit. Put it beside `pnpm theme:check`, not instead of it.
+It walks every schema in `hemp-custom/`, checks range steps, blank defaults and duplicate ids, and
+exits 1 naming the file, block and id. Put it beside `pnpm theme:check`, not instead of it.
 
 ## The store
 
