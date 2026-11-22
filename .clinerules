@@ -62,6 +62,27 @@ honoured by 5.0.2 even though the docs page says `path` is ignored in environmen
    password, `shptka_…`), `SHOPIFY_FLAG_STORE`, `SHOPIFY_FLAG_NO_INPUT=1`,
    `SHOPIFY_FLAG_ALLOW_LIVE`.
 
+## Upload errors `theme:check` does not catch
+
+**Theme Check passing is not the same as Shopify accepting the theme.** Measured 2026-11-22: an
+upload was refused with
+
+```
+Invalid block 'product': setting with id="nudge" step invalid.
+Range settings must have at most 101 steps
+```
+
+The rule is `(max - min) / step <= 100`. `min: -300, max: 300, step: 5` is 120 steps — valid JSON,
+valid Liquid, **0 offences under `theme:check`**, and rejected on push. Run the checker before
+anything that uploads:
+
+```bash
+pnpm check:ranges     # 6 range settings, all within 100 steps.
+```
+
+It walks every schema in `hemp-custom/` and exits 1, naming the file, block and id, if a range is
+over the limit. Put it beside `pnpm theme:check`, not instead of it.
+
 ## The store
 
 `hemp-shack-dev-yxgdumgm.myshopify.com` — a **password-protected development store** (the

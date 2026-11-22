@@ -21,6 +21,7 @@
     "theme:info": "shopify theme info",
     "theme:open": "shopify theme open",
     "theme:package": "shopify theme package",
+    "check:ranges": "node scripts/check-ranges.mjs",
     "admin": "node scripts/admin.mjs"
   },
   "devDependencies": {

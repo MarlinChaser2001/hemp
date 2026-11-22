@@ -6,7 +6,7 @@
         "height": "tall",
         "eyebrow": "Australian grown — cold pressed",
         "heading": "Grown for skin.",
-        "heading_em": "Tested on paws.",
+        "heading_em": "Made for paws.",
         "lede": "Cold-pressed hemp seed oil, aloe and botanicals — for you, and for the ones who follow you everywhere.",
         "cta1_label": "Shop the range",
         "cta1_link": "/collections/all",
@@ -97,7 +97,9 @@
             "collection": "all-pets",
             "label": "Hemp for dogs and cats",
             "tooltip": "Bedding, chews and sprays — the pet line",
-            "link": "/collections/all-pets"
+            "link": "/collections/all-pets",
+            "nudge": 100,
+            "scale": 125
           }
         },
         "people": {
@@ -106,7 +108,8 @@
             "collection": "personal-care",
             "label": "Hemp for people",
             "tooltip": "Balms, oils and creams for skin",
-            "link": "/collections/personal-care"
+            "link": "/collections/personal-care",
+            "nudge": 200
           }
         },
         "terpenes": {
@@ -115,7 +118,9 @@
             "collection": "terpenes",
             "label": "Terpenes and isolates",
             "tooltip": "Strain blends and single isolates",
-            "link": "/collections/terpenes"
+            "link": "/collections/terpenes",
+            "nudge": -200,
+            "scale": 50
           }
         }
       },

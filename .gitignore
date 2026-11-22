@@ -33,3 +33,11 @@ Thumbs.db
 # Python scratch used by skincare-commercial/ (the old-site scrape).
 .venv/
 __pycache__/
+
+# ── Raw generated masters ────────────────────────────────────────────────────
+# Source footage for the hero film (docs/hero-film.md). 16–20 MB a take, and
+# the delivered cuts live in hemp-custom/assets/ — keep the master out of git.
+/hobby_farm_hemp_health.mp4
+/hobby_farm_hemp_health_loop.mp4
+/hero-still.png
+/hero-still-rings.png

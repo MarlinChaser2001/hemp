@@ -1,24 +1,47 @@
 {% comment %}
-  Hemp — the film hero.
+  Hemp — the farm hero.
 
-  The footage is 1920×1080 with its subject low in the frame and the top third
-  left as warm bokeh, so the copy is anchored top and the scrim is heaviest at
-  the top (a green-to-transparent gradient). That is what keeps white type
-  legible over a shot whose brightness changes as the oil falls.
+  A locked-off golden-hour farm scene: a man standing with a horse, a dog, a cat
+  and a hen, and a hemp leaf in the bottom-left foreground. Five thin rings of
+  light glow around the five figures — green, blue, violet, amber, coral — which
+  is the whole "for you, and for the ones who follow you" idea in one image,
+  with **no copy baked into the plate**.
 
-  The default film is the first ten seconds — the leaf and the aloe — cut and
-  compressed into `assets/hemp-hero-loop.mp4` (452 KB, 720p, silent). Shots 4–9
-  of the original include the jar's label, which carries the old shop mark, so
-  the branded end card belongs on the product page and not above the fold of a
-  page that is still waiting for its new name. `section.settings.video` replaces
-  the loop with anything from Content → Files when a film is ready.
+  The plate is a **still**, `assets/hemp-farm-plate.jpg`. Everything that moves is
+  drawn over it, in SVG, in plate pixels: each ring starts flat on the grass and
+  swings up and over its figure, then breathes. No frame is ever re-synthesised,
+  so nothing can drift or wobble — which is exactly what killed the filmed
+  version (see `docs/hero-film.md`, kept as the record of it).
 
-  Nothing here is required to be a video: with `prefers-reduced-motion` the same
-  poster is shown and the clip is never started.
+  The SVG crops like the image does — `xMidYMid slice` against the plate's
+  `object-fit: cover; object-position: center 50%` — so a ring lands on its
+  subject at every viewport width, including the phone crop.
+
+  The movement is in the type, not in the picture: the eyebrow, each line of the
+  headline, the lede, the buttons and the footnote arrive one after another from
+  the top down, each wiped in from its own top edge. Nothing pins, parallaxes or
+  drifts, because the whole point of a still is that it cannot wobble.
+
+  The rings are drawn as light — a gradient stroke that is pale where the sun is,
+  a white specular segment near the top, a pool of the same colour on the grass —
+  and they glow and pulse on three different cycles so five rings never pulse as
+  one. On desktop three pills sit in the grass at the feet of the horse, the man
+  and the dog: they are the hero's links to those three collections, and they are
+  hidden under 900px, where the plate is cropped to its middle third.
+
+  The plate is bright at the top and the leaf is dark at the lower left, so the
+  scrim is a green-to-transparent band across the top for the headline, a softer
+  band down the left over the leaf, and a fade at the foot that blends the plate
+  into the ticker below. The rings are painted **above** the scrim, so they keep
+  their colour where the headline's band is heaviest.
+
+  `section.settings.video` replaces the whole thing with anything from Content →
+  Files, if a film is ever wanted again. With a video set the rings are not drawn
+  — the footage brings its own — and the pause control appears.
 {% endcomment %}
 
 {%- liquid
-  assign poster_url = 'hemp-hero-poster.jpg' | asset_url
+  assign poster_url = 'hemp-farm-poster.jpg' | asset_url
   if section.settings.poster != blank
     assign poster_url = section.settings.poster | image_url: width: 2400
   endif
@@ -28,26 +51,227 @@
 
 <section class="hemp-hero hemp-hero--{{ section.settings.height }} full-width" data-hemp-hero>
   <div class="hemp-hero__media">
-    <video
-      class="hemp-hero__video"
-      autoplay
-      muted
-      loop
-      playsinline
-      preload="metadata"
-      poster="{{ poster_url }}"
-      aria-hidden="true"
-      tabindex="-1"
-    >
-      {%- if section.settings.video != blank -%}
+    {%- if section.settings.video != blank -%}
+      <video
+        class="hemp-hero__video"
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="metadata"
+        poster="{{ poster_url }}"
+        aria-hidden="true"
+        tabindex="-1"
+      >
         {%- for source in section.settings.video.sources -%}
           <source src="{{ source.url }}" type="{{ source.mime_type }}">
         {%- endfor -%}
-      {%- else -%}
-        <source src="{{ 'hemp-hero-loop.mp4' | asset_url }}" type="video/mp4">
-      {%- endif -%}
-    </video>
+      </video>
+    {%- else -%}
+      <img
+        class="hemp-hero__plate"
+        src="{{ 'hemp-farm-plate.jpg' | asset_url }}"
+        srcset="{{ 'hemp-farm-plate-720.jpg' | asset_url }} 1280w, {{ 'hemp-farm-plate.jpg' | asset_url }} 1920w"
+        sizes="100vw"
+        width="1920"
+        height="1080"
+        alt=""
+        fetchpriority="high"
+        decoding="async"
+      >
+    {%- endif -%}
+
     <div class="hemp-hero__scrim" aria-hidden="true"></div>
+
+    {%- if section.settings.video == blank -%}
+      {%- comment -%}
+        One ring per figure, in plate pixels — the viewBox *is* the plate,
+        1920 × 1080. The outer `<g>` moves the origin to the point where the ring
+        touches the ground (`cx`, `cy + r`), so the circle's own `scaleY()` pivots
+        there with no `transform-box` and no `transform-origin` involved at all.
+        That is the one construct that has never varied between browsers — and
+        the reason the first version of this came out lying flat on the grass.
+        Radii were fitted to the five figures, not guessed.
+      {%- endcomment -%}
+      <svg
+        class="hemp-hero__rings"
+        viewBox="0 0 1920 1080"
+        preserveAspectRatio="xMidYMid slice"
+        focusable="false"
+      >
+        <defs>
+          <filter
+            id="hemp-ring-bloom-{{ section.id }}"
+            x="-40%"
+            y="-40%"
+            width="180%"
+            height="180%"
+          >
+            <feGaussianBlur stdDeviation="9"></feGaussianBlur>
+          </filter>
+
+          {%- comment -%}
+            Four paints per figure: a linear gradient for the ring itself — pale
+            where the sun is, saturated at the bottom, so it reads as light and
+            not as a drawn circle — and a radial for the pool it throws on the
+            grass. Literal colours rather than tokens, because an SVG paint
+            server cannot inherit `currentColor`.
+          {%- endcomment -%}
+          <linearGradient id="hemp-ring-line-horse" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f0ffcf"></stop>
+            <stop offset="0.55" stop-color="#a6de54"></stop>
+            <stop offset="1" stop-color="#a6de54" stop-opacity="0.5"></stop>
+          </linearGradient>
+          <radialGradient id="hemp-ring-pool-horse">
+            <stop offset="0" stop-color="#a6de54" stop-opacity="0.55"></stop>
+            <stop offset="0.6" stop-color="#a6de54" stop-opacity="0.16"></stop>
+            <stop offset="1" stop-color="#a6de54" stop-opacity="0"></stop>
+          </radialGradient>
+
+          <linearGradient id="hemp-ring-line-man" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#e8f9ff"></stop>
+            <stop offset="0.55" stop-color="#79c6ef"></stop>
+            <stop offset="1" stop-color="#79c6ef" stop-opacity="0.5"></stop>
+          </linearGradient>
+          <radialGradient id="hemp-ring-pool-man">
+            <stop offset="0" stop-color="#79c6ef" stop-opacity="0.55"></stop>
+            <stop offset="0.6" stop-color="#79c6ef" stop-opacity="0.16"></stop>
+            <stop offset="1" stop-color="#79c6ef" stop-opacity="0"></stop>
+          </radialGradient>
+
+          <linearGradient id="hemp-ring-line-dog" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#fff4d6"></stop>
+            <stop offset="0.55" stop-color="#f2ba55"></stop>
+            <stop offset="1" stop-color="#f2ba55" stop-opacity="0.5"></stop>
+          </linearGradient>
+          <radialGradient id="hemp-ring-pool-dog">
+            <stop offset="0" stop-color="#f2ba55" stop-opacity="0.55"></stop>
+            <stop offset="0.6" stop-color="#f2ba55" stop-opacity="0.16"></stop>
+            <stop offset="1" stop-color="#f2ba55" stop-opacity="0"></stop>
+          </radialGradient>
+
+          <linearGradient id="hemp-ring-line-hen" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffe6de"></stop>
+            <stop offset="0.55" stop-color="#f08a72"></stop>
+            <stop offset="1" stop-color="#f08a72" stop-opacity="0.5"></stop>
+          </linearGradient>
+          <radialGradient id="hemp-ring-pool-hen">
+            <stop offset="0" stop-color="#f08a72" stop-opacity="0.55"></stop>
+            <stop offset="0.6" stop-color="#f08a72" stop-opacity="0.16"></stop>
+            <stop offset="1" stop-color="#f08a72" stop-opacity="0"></stop>
+          </radialGradient>
+
+          <linearGradient id="hemp-ring-line-cat" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f4e8ff"></stop>
+            <stop offset="0.55" stop-color="#b78fe8"></stop>
+            <stop offset="1" stop-color="#b78fe8" stop-opacity="0.5"></stop>
+          </linearGradient>
+          <radialGradient id="hemp-ring-pool-cat">
+            <stop offset="0" stop-color="#b78fe8" stop-opacity="0.55"></stop>
+            <stop offset="0.6" stop-color="#b78fe8" stop-opacity="0.16"></stop>
+            <stop offset="1" stop-color="#b78fe8" stop-opacity="0"></stop>
+          </radialGradient>
+        </defs>
+
+        {%- comment -%}
+          The rings themselves are decoration — the pills below carry the only
+          meaning — so they stay out of the accessibility tree, while the SVG as a
+          whole does not, because it now holds the hero's links.
+        {%- endcomment -%}
+        <g aria-hidden="true">
+        {%- comment -%} The cat, furthest back, on the fence post — hinge 1687, 524 {%- endcomment -%}
+        <g class="hemp-ring--cat" transform="translate(1687 524)">
+          <ellipse class="hemp-ring__pool" rx="120" ry="34" fill="url(#hemp-ring-pool-cat)"></ellipse>
+          <g class="hemp-ring">
+            <circle class="hemp-ring__bloom" cy="-114" r="114" stroke="url(#hemp-ring-line-cat)" filter="url(#hemp-ring-bloom-{{ section.id }})"></circle>
+            <circle class="hemp-ring__line" cy="-114" r="114" stroke="url(#hemp-ring-line-cat)"></circle>
+            <circle class="hemp-ring__spec" cy="-114" r="114" stroke-dasharray="214.9 716.3" stroke-dashoffset="-408.3"></circle>
+          </g>
+        </g>
+
+        {%- comment -%} The man, centre — hinge 1130, 588 {%- endcomment -%}
+        <g class="hemp-ring--man" transform="translate(1130 588)">
+          <ellipse class="hemp-ring__pool" rx="137" ry="39" fill="url(#hemp-ring-pool-man)"></ellipse>
+          <g class="hemp-ring">
+            <circle class="hemp-ring__bloom" cy="-130" r="130" stroke="url(#hemp-ring-line-man)" filter="url(#hemp-ring-bloom-{{ section.id }})"></circle>
+            <circle class="hemp-ring__line" cy="-130" r="130" stroke="url(#hemp-ring-line-man)"></circle>
+            <circle class="hemp-ring__spec" cy="-130" r="130" stroke-dasharray="245 816.8" stroke-dashoffset="-465.6"></circle>
+          </g>
+        </g>
+
+        {%- comment -%} The horse, left — hinge 760, 658 {%- endcomment -%}
+        <g class="hemp-ring--horse" transform="translate(760 658)">
+          <ellipse class="hemp-ring__pool" rx="137" ry="39" fill="url(#hemp-ring-pool-horse)"></ellipse>
+          <g class="hemp-ring">
+            <circle class="hemp-ring__bloom" cy="-130" r="130" stroke="url(#hemp-ring-line-horse)" filter="url(#hemp-ring-bloom-{{ section.id }})"></circle>
+            <circle class="hemp-ring__line" cy="-130" r="130" stroke="url(#hemp-ring-line-horse)"></circle>
+            <circle class="hemp-ring__spec" cy="-130" r="130" stroke-dasharray="245 816.8" stroke-dashoffset="-465.6"></circle>
+          </g>
+        </g>
+
+        {%- comment -%} The dog, sitting — hinge 1360, 822 {%- endcomment -%}
+        <g class="hemp-ring--dog" transform="translate(1360 822)">
+          <ellipse class="hemp-ring__pool" rx="137" ry="39" fill="url(#hemp-ring-pool-dog)"></ellipse>
+          <g class="hemp-ring">
+            <circle class="hemp-ring__bloom" cy="-130" r="130" stroke="url(#hemp-ring-line-dog)" filter="url(#hemp-ring-bloom-{{ section.id }})"></circle>
+            <circle class="hemp-ring__line" cy="-130" r="130" stroke="url(#hemp-ring-line-dog)"></circle>
+            <circle class="hemp-ring__spec" cy="-130" r="130" stroke-dasharray="245 816.8" stroke-dashoffset="-465.6"></circle>
+          </g>
+        </g>
+
+        {%- comment -%} The hen, nearest, at the viewer's feet — hinge 1592, 1048 {%- endcomment -%}
+        <g class="hemp-ring--hen" transform="translate(1592 1048)">
+          <ellipse class="hemp-ring__pool" rx="149" ry="43" fill="url(#hemp-ring-pool-hen)"></ellipse>
+          <g class="hemp-ring">
+            <circle class="hemp-ring__bloom" cy="-142" r="142" stroke="url(#hemp-ring-line-hen)" filter="url(#hemp-ring-bloom-{{ section.id }})"></circle>
+            <circle class="hemp-ring__line" cy="-142" r="142" stroke="url(#hemp-ring-line-hen)"></circle>
+            <circle class="hemp-ring__spec" cy="-142" r="142" stroke-dasharray="267.7 892.2" stroke-dashoffset="-508.6"></circle>
+          </g>
+        </g>
+
+        </g>
+
+        {%- if section.settings.show_pills -%}
+          {%- comment -%}
+            The pills are the hero's real links to the three collections. They sit
+            in the grass at each figure's feet and are drawn inside the same SVG as
+            the rings, so they stay locked to their subject at every viewport width
+            — only possible because the plate is a still. Positions are in plate
+            pixels and deliberately below the copy column: a pill anywhere near the
+            buttons or the shipping line ends up behind the type.
+          {%- endcomment -%}
+          <g class="hemp-hero__pills">
+            <a href="/collections/horses">
+              <title>Hemp for horses</title>
+              <g transform="translate(585 872)">
+                <rect x="-75" y="-22" width="150" height="44" rx="22" fill="#0b2419" fill-opacity="0.82" stroke="#a6de54" stroke-opacity="0.55"></rect>
+                <circle cx="-49" cy="0" r="6" fill="#a6de54"></circle>
+                <text class="hemp-hero__pill" x="9" y="1" text-anchor="middle">Horses</text>
+              </g>
+            </a>
+
+            <a href="/collections/personal-care">
+              <title>Hemp for people</title>
+              <g transform="translate(1040 706)">
+                <rect x="-70" y="-22" width="140" height="44" rx="22" fill="#0b2419" fill-opacity="0.82" stroke="#79c6ef" stroke-opacity="0.55"></rect>
+                <circle cx="-44" cy="0" r="6" fill="#79c6ef"></circle>
+                <text class="hemp-hero__pill" x="9" y="1" text-anchor="middle">For you</text>
+              </g>
+            </a>
+
+            <a href="/collections/all-pets">
+              <title>Hemp for dogs, cats and other pets</title>
+              <g transform="translate(1220 884)">
+                <rect x="-200" y="-22" width="400" height="44" rx="22" fill="#0b2419" fill-opacity="0.82" stroke="#f2ba55" stroke-opacity="0.55"></rect>
+                <circle cx="-174" cy="0" r="6" fill="#f2ba55"></circle>
+                <text class="hemp-hero__pill" x="20" y="1" text-anchor="middle">Dogs, cats and other pets</text>
+              </g>
+            </a>
+          </g>
+        {%- endif -%}
+      </svg>
+    {%- endif -%}
+
     <div class="hemp-grain" aria-hidden="true"></div>
   </div>
 
@@ -58,8 +282,8 @@
       {%- endif -%}
 
       <h1 class="hemp-display hemp-hero__title">
-        {{ section.settings.heading | escape }}
-        {%- if section.settings.heading_em != blank %} <span class="hemp-em">{{ section.settings.heading_em | escape }}</span>{% endif -%}
+        <span class="hemp-hero__line">{{ section.settings.heading | escape }}</span>
+        {%- if section.settings.heading_em != blank %} <span class="hemp-em hemp-hero__line">{{ section.settings.heading_em | escape }}</span>{% endif -%}
       </h1>
 
       {%- if section.settings.lede != blank -%}
@@ -93,7 +317,7 @@
         <span></span>
       {%- endif -%}
 
-      {%- if section.settings.show_toggle -%}
+      {%- if section.settings.show_toggle and section.settings.video != blank -%}
         <button
           type="button"
           class="hemp-hero__toggle"
@@ -116,6 +340,51 @@
 
       const video = hero.querySelector('video');
       const toggle = hero.querySelector('[data-hemp-video-toggle]');
+
+      // The rings are pure CSS and need no script. This is only a safety net: if
+      // a ring is still lying flat long after it should have risen, something in
+      // the browser has wedged the animation, and a ring standing still beats one
+      // lying on the grass. Costs one timer, changes nothing in the normal case.
+      const rings = hero.querySelectorAll('.hemp-ring');
+      if (rings.length) {
+        window.setTimeout(() => {
+          rings.forEach((ring) => {
+            const line = ring.querySelector('.hemp-ring__line');
+            if (!line) return;
+            let squash = 1;
+            try {
+              const t = window.getComputedStyle(line).transform;
+              squash = t === 'none' ? 1 : new DOMMatrixReadOnly(t).d;
+            } catch (error) {
+              squash = 1;
+            }
+            if (Math.abs(squash) < 0.5) {
+              ring.style.animation = 'none';
+              ring.querySelectorAll('circle').forEach((circle) => {
+                circle.style.animation = 'none';
+              });
+            }
+          });
+        }, 4000);
+      }
+
+      // Same net for the copy. `both` keeps a line invisible until its delay has
+      // elapsed, so one wedged animation would hide the headline for good — and a
+      // headline that arrives late beats one that never arrives at all.
+      const copy = hero.querySelectorAll(
+        '.hemp-eyebrow, .hemp-hero__line, .hemp-hero__lede, .hemp-hero__actions, .hemp-hero__note, .hemp-hero__footnote'
+      );
+      if (copy.length) {
+        window.setTimeout(() => {
+          copy.forEach((line) => {
+            if (window.getComputedStyle(line).opacity < 0.5) {
+              line.style.animation = 'none';
+              line.style.clipPath = 'none';
+            }
+          });
+        }, 4000);
+      }
+
       if (!video) return;
 
       const label = toggle && toggle.querySelector('[data-hemp-video-label]');
@@ -169,36 +438,274 @@
     z-index: 0;
   }
 
-  .hemp-hero__video {
+  .hemp-hero__video,
+  .hemp-hero__plate {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* The subject sits low in every shot; lift it just enough that the leaf and
-       the falling oil stay in frame when a phone crops the sides away. */
-    object-position: center 52%;
+    /* The five figures run across the middle of the plate, and the leaf fills
+       the lower left. Centring keeps the man and the dog in frame when a phone
+       crops the sides away. */
+    object-position: center 50%;
+  }
+
+  .hemp-hero__video {
     transform: scale(1.03);
   }
 
+  /* ----------------------------------------------------------------- rings --
+     Drawn, not filmed. Each circle sits in plate coordinates and is hinged on
+     its own bottom edge, so one `scaleY` reproduces a hoop swinging up out of
+     the grass: at 0 the ring is a line lying on the ground at the figure's feet,
+     at 1 it is the circle around the figure. A single GPU transform per ring,
+     no per-frame synthesis, and the last frame is the first frame. */
+  .hemp-hero__rings {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  /* The rings are light, not a drawn circle: the stroke comes from a gradient
+     that is pale where the sun is and saturated at the bottom, there is a white
+     specular segment near the top, and a pool of the same colour on the grass.
+
+     No `transform-box` and no `transform-origin`: the hinge is the origin of the
+     circle's own coordinate system, because its parent `<g>` translated that
+     origin down to the ground. `0 0` is also the initial value for an SVG
+     element, so this holds even in a browser that ignores `transform-origin`. */
+  .hemp-ring__line,
+  .hemp-ring__bloom,
+  .hemp-ring__spec {
+    fill: none;
+    transform-origin: 0 0;
+  }
+
+  .hemp-ring__line {
+    stroke-width: 4.4;
+    opacity: 0.9;
+  }
+
+  .hemp-ring__bloom {
+    stroke-width: 18;
+    opacity: 0.34;
+  }
+
+  /* One bright segment of the same circle, up near the sun. */
+  .hemp-ring__spec {
+    stroke: #fff;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    opacity: 0.8;
+  }
+
+  /* The pool of light the ring throws on the grass. It sits outside the scaling
+     group, so it stays flat while the ring rises out of it. */
+  .hemp-ring__pool {
+    opacity: 0.6;
+  }
+
+  /* The pills are captions over the plate and the hero's only links. Desktop
+     only: under 900px the plate is cropped to its middle third, and a caption
+     with nothing beside it is just noise. */
+  .hemp-hero__pill {
+    fill: var(--hemp-cream);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .hemp-hero__pills a {
+    cursor: pointer;
+  }
+
+  .hemp-hero__pills rect {
+    transition: fill-opacity 0.2s ease, stroke-opacity 0.2s ease;
+  }
+
+  /* Hover and keyboard focus get the same treatment, since an outline on an SVG
+     link is not reliable across browsers. */
+  .hemp-hero__pills a:hover rect,
+  .hemp-hero__pills a:focus rect,
+  .hemp-hero__pills a:focus-visible rect {
+    fill-opacity: 0.96;
+    stroke-opacity: 1;
+  }
+
+  @media (max-width: 899px) {
+    .hemp-hero__pills {
+      display: none;
+    }
+  }
+
+  /* The delays run back to front — the cat on the post first, the hen at the
+     viewer's feet last — so the field fills in depth rather than left to right. */
+  .hemp-ring--cat {
+    --delay: 0s;
+  }
+
+  .hemp-ring--man {
+    --delay: 0.16s;
+  }
+
+  .hemp-ring--horse {
+    --delay: 0.32s;
+  }
+
+  .hemp-ring--dog {
+    --delay: 0.48s;
+  }
+
+  .hemp-ring--hen {
+    --delay: 0.64s;
+  }
+
+  @keyframes hemp-ring-rise {
+    0% {
+      transform: scaleY(0.045);
+    }
+    58% {
+      transform: scaleY(1.05);
+    }
+    74% {
+      transform: scaleY(0.985);
+    }
+    100% {
+      transform: scaleY(1);
+    }
+  }
+
+  @keyframes hemp-ring-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Standing, the rings breathe. Each element pulses on its own cycle — line,
+     bloom and pool all different lengths — so five rings never pulse as one and
+     the light never looks like a metronome. */
+  @keyframes hemp-halo-line {
+    0%,
+    100% {
+      opacity: 0.72;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes hemp-halo-bloom {
+    0%,
+    100% {
+      opacity: 0.2;
+    }
+    50% {
+      opacity: 0.52;
+    }
+  }
+
+  @keyframes hemp-halo-pool {
+    0%,
+    100% {
+      opacity: 0.45;
+    }
+    50% {
+      opacity: 0.85;
+    }
+  }
+
+  /* Motion is the default; only an explicit "reduce" turns it off (below), so a
+     browser that does not know the media feature still gets the movement.
+     Longhands and literal values throughout, on purpose: a `var()` inside an
+     `animation` shorthand makes the whole declaration invalid at computed-value
+     time if that variable is missing — a silent failure that leaves the rings
+     lying flat on the grass and nothing else to see. */
+  .hemp-ring {
+    animation-name: hemp-ring-in;
+    animation-duration: 0.45s;
+    animation-timing-function: linear;
+    animation-delay: var(--delay, 0s);
+    animation-fill-mode: backwards;
+  }
+
+  .hemp-ring__line,
+  .hemp-ring__bloom {
+    animation-name: hemp-ring-rise, hemp-halo-line;
+    animation-duration: 1.4s, 7s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1), ease-in-out;
+    animation-delay: var(--delay, 0s), var(--delay, 0s);
+    animation-fill-mode: backwards, none;
+    animation-iteration-count: 1, infinite;
+  }
+
+  /* The bloom pulses on a longer, deeper cycle than its line. */
+  .hemp-ring__bloom {
+    animation-name: hemp-ring-rise, hemp-halo-bloom;
+    animation-duration: 1.4s, 9.5s;
+  }
+
+  /* The specular rides the same rise as the ring it belongs to — otherwise it
+     hangs in the air while the ring is still lying flat on the grass. */
+  .hemp-ring__spec {
+    animation-name: hemp-ring-rise;
+    animation-duration: 1.4s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    animation-delay: var(--delay, 0s);
+    animation-fill-mode: backwards;
+  }
+
+  .hemp-ring__pool {
+    animation-name: hemp-halo-pool;
+    animation-duration: 8.5s;
+    animation-timing-function: ease-in-out;
+    animation-delay: var(--delay, 0s);
+    animation-iteration-count: infinite;
+  }
+
+  /* The pills land last, once the light is on the five figures. */
+  .hemp-hero__pills {
+    animation-name: hemp-pill-in;
+    animation-duration: 0.8s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    animation-delay: 1.15s;
+    animation-fill-mode: backwards;
+  }
+
+  @keyframes hemp-pill-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   /* Two jobs: make white type legible against a bright sky, and blend the bottom
-     of the film into the section below so the page reads as one surface. */
+     of the plate into the section below so the page reads as one surface. */
   .hemp-hero__scrim {
     position: absolute;
     inset: 0;
     background:
-      /* Top band: the sky the copy lives in. */
+      /* Top band: the sun haze the headline lives in. Kept heavy, because this
+         plate is brighter at the top than the old film was. */
       linear-gradient(
         180deg,
-        rgb(11 36 25 / 0.86) 0%,
-        rgb(11 36 25 / 0.6) 26%,
-        rgb(11 36 25 / 0.26) 52%,
-        rgb(11 36 25 / 0) 70%
+        rgb(11 36 25 / 0.84) 0%,
+        rgb(11 36 25 / 0.58) 26%,
+        rgb(11 36 25 / 0.25) 52%,
+        rgb(11 36 25 / 0) 68%
       ),
-      /* Left band: keeps the headline and lede off the lit edge of the leaf. */
+      /* Left band: keeps the headline off the lit edges of the leaf. Softer than
+         it was — the leaf is already dark, so it does not need much help. */
         linear-gradient(
           90deg,
-          rgb(11 36 25 / 0.55) 0%,
-          rgb(11 36 25 / 0.22) 38%,
-          rgb(11 36 25 / 0) 64%
+          rgb(11 36 25 / 0.45) 0%,
+          rgb(11 36 25 / 0.18) 38%,
+          rgb(11 36 25 / 0) 62%
         ),
       /* Bottom: blends the film into the section below. */
         linear-gradient(0deg, var(--hemp-deep) 0%, rgb(11 36 25 / 0) 34%),
@@ -242,7 +749,7 @@
     font-size: 0.78rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: rgb(248 244 232 / 0.62);
+    color: rgb(248 244 232 / 0.78);
   }
 
   .hemp-hero__foot {
@@ -302,39 +809,93 @@
     }
   }
 
-  /* One entrance, staggered, and nothing to wait for. */
-  @media (prefers-reduced-motion: no-preference) {
-    .hemp-hero__copy > * {
-      animation: hemp-rise 0.9s var(--hemp-ease) both;
-    }
-    .hemp-hero__copy > *:nth-child(2) {
-      animation-delay: 0.08s;
-    }
-    .hemp-hero__copy > *:nth-child(3) {
-      animation-delay: 0.16s;
-    }
-    .hemp-hero__copy > *:nth-child(4) {
-      animation-delay: 0.24s;
-    }
-    .hemp-hero__copy > *:nth-child(5) {
-      animation-delay: 0.32s;
-    }
+  /* The copy arrives line by line, top to bottom — eyebrow, then each line of the
+     headline, then the lede, the buttons, the note. Each line rises a little and
+     is wiped in from its own top edge, so it reads as being "shot" onto the page
+     rather than fading up as one block. */
+  .hemp-hero__line {
+    display: inline-block;
   }
 
-  @keyframes hemp-rise {
-    from {
+  .hemp-hero .hemp-eyebrow,
+  .hemp-hero__line,
+  .hemp-hero__lede,
+  .hemp-hero__actions,
+  .hemp-hero__note,
+  .hemp-hero__footnote {
+    animation-name: hemp-line-in;
+    animation-duration: 0.85s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    animation-fill-mode: both;
+  }
+
+  .hemp-hero .hemp-eyebrow {
+    animation-delay: 0.12s;
+  }
+
+  .hemp-hero__line:first-child {
+    animation-delay: 0.24s;
+  }
+
+  .hemp-hero__line + .hemp-hero__line {
+    animation-delay: 0.38s;
+  }
+
+  .hemp-hero__lede {
+    animation-delay: 0.54s;
+  }
+
+  .hemp-hero__actions {
+    animation-delay: 0.68s;
+  }
+
+  .hemp-hero__note {
+    animation-delay: 0.8s;
+  }
+
+  .hemp-hero__footnote {
+    animation-delay: 0.95s;
+  }
+
+  @keyframes hemp-line-in {
+    0% {
       opacity: 0;
-      transform: translateY(1.1rem);
+      transform: translateY(0.5em);
+      clip-path: inset(0 0 100% 0);
     }
-    to {
+    55% {
+      opacity: 1;
+    }
+    100% {
       opacity: 1;
       transform: none;
+      /* Negative insets: the final state must not clip an italic's tail. */
+      clip-path: inset(-8% -6% -8% -6%);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .hemp-hero__toggle-dot {
+    .hemp-hero__toggle-dot,
+    .hemp-ring,
+    .hemp-ring__line,
+    .hemp-ring__bloom,
+    .hemp-ring__pool,
+    .hemp-hero__pills,
+    .hemp-hero .hemp-eyebrow,
+    .hemp-hero__line,
+    .hemp-hero__lede,
+    .hemp-hero__actions,
+    .hemp-hero__note,
+    .hemp-hero__footnote {
       animation: none;
+    }
+
+    .hemp-hero__line,
+    .hemp-hero__lede,
+    .hemp-hero__actions,
+    .hemp-hero__note,
+    .hemp-hero__footnote {
+      clip-path: none;
     }
   }
 
@@ -343,7 +904,7 @@
       min-height: 92svh;
     }
     .hemp-hero__video {
-      object-position: center 42%;
+      object-position: center 50%;
     }
     .hemp-hero__foot {
       flex-direction: column;
@@ -383,8 +944,8 @@
       "type": "text",
       "id": "heading_em",
       "label": "Heading, italic accent",
-      "info": "Set in serif italic after the heading. Keep it to two or three words.",
-      "default": "Tested on paws."
+      "info": "Set in serif italic after the heading. Keep it to two or three words. Never imply testing on animals.",
+      "default": "Made for paws."
     },
     {
       "type": "textarea",
@@ -430,8 +991,16 @@
     },
     {
       "type": "checkbox",
+      "id": "show_pills",
+      "label": "Label pills over the plate",
+      "info": "Desktop only — hidden under 900px, where the plate is cropped and a pill would sit beside nothing.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
       "id": "show_toggle",
       "label": "Show the pause control",
+      "info": "Only appears when a video is set — the still plate has nothing to pause.",
       "default": true
     },
     {
@@ -442,13 +1011,13 @@
       "type": "video",
       "id": "video",
       "label": "Video",
-      "info": "Pick a file from Content → Files. Empty uses the ten-second loop built into the theme."
+      "info": "Pick a file from Content → Files. Empty uses the still plate with the animated SVG rings."
     },
     {
       "type": "image_picker",
       "id": "poster",
       "label": "Poster frame",
-      "info": "Shown while the film loads, and instead of it for anyone who has asked for less motion."
+      "info": "Only used with a video: shown while it loads, and instead of it for anyone who has asked for less motion."
     }
   ],
   "presets": [
